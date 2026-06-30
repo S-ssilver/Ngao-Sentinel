@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SupervisorRouteImport } from './routes/supervisor'
 import { Route as SitesRouteImport } from './routes/sites'
 import { Route as ClientRouteImport } from './routes/client'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SupervisorRoute = SupervisorRouteImport.update({
+  id: '/supervisor',
+  path: '/supervisor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitesRoute = SitesRouteImport.update({
   id: '/sites',
   path: '/sites',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/client': typeof ClientRoute
   '/sites': typeof SitesRoute
+  '/supervisor': typeof SupervisorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/client': typeof ClientRoute
   '/sites': typeof SitesRoute
+  '/supervisor': typeof SupervisorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/client': typeof ClientRoute
   '/sites': typeof SitesRoute
+  '/supervisor': typeof SupervisorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/client' | '/sites'
+  fullPaths: '/' | '/client' | '/sites' | '/supervisor'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/client' | '/sites'
-  id: '__root__' | '/' | '/client' | '/sites'
+  to: '/' | '/client' | '/sites' | '/supervisor'
+  id: '__root__' | '/' | '/client' | '/sites' | '/supervisor'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClientRoute: typeof ClientRoute
   SitesRoute: typeof SitesRoute
+  SupervisorRoute: typeof SupervisorRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/supervisor': {
+      id: '/supervisor'
+      path: '/supervisor'
+      fullPath: '/supervisor'
+      preLoaderRoute: typeof SupervisorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sites': {
       id: '/sites'
       path: '/sites'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClientRoute: ClientRoute,
   SitesRoute: SitesRoute,
+  SupervisorRoute: SupervisorRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
