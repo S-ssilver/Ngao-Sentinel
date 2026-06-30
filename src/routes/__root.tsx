@@ -86,6 +86,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Security operations console for sites, attendance, and incidents." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Silverline Station" },
+      { name: "twitter:description", content: "Security operations console for sites, attendance, and incidents." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/130d3d58-e8ca-4fbf-bd28-4997509953c8/id-preview-115145c6--0af00f35-ce02-41dc-ab3f-cc9a64a4d83d.lovable.app-1782853658954.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/130d3d58-e8ca-4fbf-bd28-4997509953c8/id-preview-115145c6--0af00f35-ce02-41dc-ab3f-cc9a64a4d83d.lovable.app-1782853658954.png" },
     ],
     links: [
       {
