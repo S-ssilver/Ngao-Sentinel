@@ -14,7 +14,115 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance_logs: {
+        Row: {
+          created_at: string
+          guard_name: string
+          id: string
+          notes: string | null
+          shift_type: Database["public"]["Enums"]["shift_type"]
+          site_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+        }
+        Insert: {
+          created_at?: string
+          guard_name: string
+          id?: string
+          notes?: string | null
+          shift_type: Database["public"]["Enums"]["shift_type"]
+          site_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+        }
+        Update: {
+          created_at?: string
+          guard_name?: string
+          id?: string
+          notes?: string | null
+          shift_type?: Database["public"]["Enums"]["shift_type"]
+          site_id?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_logs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_logs: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          incident_type: Database["public"]["Enums"]["incident_type"]
+          other_type: string | null
+          resolved: boolean
+          severity: Database["public"]["Enums"]["severity"]
+          site_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          incident_type: Database["public"]["Enums"]["incident_type"]
+          other_type?: string | null
+          resolved?: boolean
+          severity: Database["public"]["Enums"]["severity"]
+          site_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          incident_type?: Database["public"]["Enums"]["incident_type"]
+          other_type?: string | null
+          resolved?: boolean
+          severity?: Database["public"]["Enums"]["severity"]
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_logs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sites: {
+        Row: {
+          active: boolean
+          address: string | null
+          company_name: string
+          created_at: string
+          id: string
+          location_code: string | null
+          site_name: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          company_name: string
+          created_at?: string
+          id?: string
+          location_code?: string | null
+          site_name: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          company_name?: string
+          created_at?: string
+          id?: string
+          location_code?: string | null
+          site_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +131,18 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      attendance_status: "Present" | "Absent" | "Late" | "Replacement Required"
+      incident_type:
+        | "Theft"
+        | "Assault/Violence"
+        | "Trespassing"
+        | "Vandalism/Damage"
+        | "Medical Emergency"
+        | "Fire"
+        | "Equipment Failure"
+        | "Other"
+      severity: "Low" | "Medium" | "High"
+      shift_type: "Day" | "Night"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +269,20 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      attendance_status: ["Present", "Absent", "Late", "Replacement Required"],
+      incident_type: [
+        "Theft",
+        "Assault/Violence",
+        "Trespassing",
+        "Vandalism/Damage",
+        "Medical Emergency",
+        "Fire",
+        "Equipment Failure",
+        "Other",
+      ],
+      severity: ["Low", "Medium", "High"],
+      shift_type: ["Day", "Night"],
+    },
   },
 } as const
