@@ -231,7 +231,7 @@ function AttendanceForm({ sites, supervisor }: { sites: SiteOpt[]; supervisor: s
   );
 }
 
-function IncidentForm({ sites }: { sites: SiteOpt[] }) {
+function IncidentForm({ sites, supervisor }: { sites: SiteOpt[]; supervisor: string }) {
   const qc = useQueryClient();
   const [siteId, setSiteId] = useState("");
   const [type, setType] = useState<IncidentType | "">("");
@@ -247,6 +247,7 @@ function IncidentForm({ sites }: { sites: SiteOpt[] }) {
         other_type: type === "Other" ? otherType.trim() || null : null,
         severity: severity as Severity,
         description: description.trim() || null,
+        reported_by: supervisor || null,
       });
       if (error) throw error;
     },
@@ -257,6 +258,7 @@ function IncidentForm({ sites }: { sites: SiteOpt[] }) {
       setSeverity("");
       setDescription("");
       qc.invalidateQueries({ queryKey: ["incidents"] });
+      qc.invalidateQueries({ queryKey: ["my-incidents"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -272,6 +274,10 @@ function IncidentForm({ sites }: { sites: SiteOpt[] }) {
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
+            if (!supervisor) {
+              toast.error("Enter your supervisor name at the top of the page first");
+              return;
+            }
             if (!siteId || !type || !severity) {
               toast.error("Please complete all required fields");
               return;
