@@ -41,6 +41,7 @@ export interface AttendanceLog {
   shift_type: ShiftType;
   status: AttendanceStatus;
   notes: string | null;
+  reported_by: string | null;
   created_at: string;
 }
 
@@ -52,6 +53,7 @@ export interface IncidentLog {
   severity: Severity;
   description: string | null;
   resolved: boolean;
+  reported_by: string | null;
   created_at: string;
 }
 
