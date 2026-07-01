@@ -361,3 +361,134 @@ function IncidentForm({ sites, supervisor }: { sites: SiteOpt[]; supervisor: str
     </Card>
   );
 }
+function MyIncidentsPanel({ supervisor }: { supervisor: string }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const { data: incidents = [] } = useQuery({
+    queryKey: ["my-incidents", supervisor],
+    enabled: !!supervisor,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("incident_logs")
+        .select("*, sites(site_name, company_name)")
+        .eq("reported_by", supervisor)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as (IncidentLog & { sites: { site_name: string; company_name: string } | null })[];
+    },
+  });
+
+  const selected = incidents.find((i) => i.id === openId) ?? null;
+  const protocol = selected ? INCIDENT_PROTOCOLS[selected.incident_type] : null;
+
+  if (!supervisor) {
+    return (
+      <Card>
+        <CardContent className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+          <FileWarning className="h-4 w-4" />
+          Enter your supervisor name above to see your reported incidents.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="h-5 w-5 text-primary" />
+          <CardTitle>My Reported Incidents</CardTitle>
+        </div>
+        <Badge variant="secondary" className="text-sm">
+          Total: {incidents.length}
+        </Badge>
+      </CardHeader>
+      <CardContent>
+        {incidents.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No incidents reported yet.</p>
+        ) : (
+          <ul className="divide-y divide-border rounded-md border border-border">
+            {incidents.slice(0, 10).map((inc) => (
+              <li key={inc.id}>
+                <button
+                  type="button"
+                  onClick={() => setOpenId(inc.id)}
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-muted/40"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        {inc.incident_type === "Other" ? inc.other_type || "Other" : inc.incident_type}
+                      </span>
+                      <span className={cn("rounded-full border px-2 py-0.5 text-xs", severityTone(inc.severity))}>
+                        {inc.severity}
+                      </span>
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {inc.sites?.site_name ?? "—"} · {new Date(inc.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <span className="text-xs text-primary">View protocol →</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+
+      <Dialog open={!!openId} onOpenChange={(o) => !o && setOpenId(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          {selected && protocol ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-primary" />
+                  {protocol.title}
+                </DialogTitle>
+                <DialogDescription>
+                  {selected.sites?.site_name ?? "Site"} ·{" "}
+                  <span className={cn("ml-1 rounded-full border px-2 py-0.5 text-xs", severityTone(selected.severity))}>
+                    {selected.severity} severity
+                  </span>
+                </DialogDescription>
+              </DialogHeader>
+
+              {selected.description ? (
+                <div className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+                  {selected.description}
+                </div>
+              ) : null}
+
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold text-primary">Immediate actions</h3>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  {protocol.immediate.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold text-primary">Follow-up</h3>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  {protocol.followUp.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+                <span className="font-semibold text-destructive">Escalation: </span>
+                {protocol.escalate}
+              </section>
+
+              <p className="text-xs text-muted-foreground">
+                General guidance based on standard security protocols. Always follow site-specific post orders and local laws.
+              </p>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
