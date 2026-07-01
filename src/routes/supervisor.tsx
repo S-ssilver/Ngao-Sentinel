@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ClipboardCheck, ShieldAlert } from "lucide-react";
+import { ClipboardCheck, ShieldAlert, UserCog, FileWarning } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -18,16 +18,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import {
   ATTENDANCE_STATUSES,
   INCIDENT_TYPES,
   SEVERITIES,
   SHIFT_TYPES,
   type AttendanceStatus,
+  type IncidentLog,
   type IncidentType,
   type Severity,
   type ShiftType,
   type Site,
+  severityTone,
 } from "@/lib/silverline";
+import { INCIDENT_PROTOCOLS } from "@/lib/incident-protocols";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/supervisor")({
   head: () => ({
@@ -39,7 +51,21 @@ export const Route = createFileRoute("/supervisor")({
   component: SupervisorConsole,
 });
 
+const SUPERVISOR_STORAGE_KEY = "silverline.supervisor";
+
 function SupervisorConsole() {
+  const [supervisor, setSupervisor] = useState("");
+
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? window.localStorage.getItem(SUPERVISOR_STORAGE_KEY) : null;
+    if (stored) setSupervisor(stored);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (supervisor.trim()) window.localStorage.setItem(SUPERVISOR_STORAGE_KEY, supervisor.trim());
+  }, [supervisor]);
+
   const { data: sites = [] } = useQuery({
     queryKey: ["sites", "active-list"],
     queryFn: async () => {
@@ -55,14 +81,33 @@ function SupervisorConsole() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">Supervisor Console</h1>
-        <p className="text-sm text-muted-foreground">Log attendance and incidents from the field.</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold sm:text-3xl">Supervisor Console</h1>
+          <p className="text-sm text-muted-foreground">Log attendance and incidents from the field.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <UserCog className="h-4 w-4 text-muted-foreground" />
+          <div className="space-y-1">
+            <Label htmlFor="supervisor" className="text-xs text-muted-foreground">
+              Supervisor on duty
+            </Label>
+            <Input
+              id="supervisor"
+              value={supervisor}
+              onChange={(e) => setSupervisor(e.target.value)}
+              placeholder="e.g. Sgt. Morales"
+              className="w-56"
+            />
+          </div>
+        </div>
       </div>
 
+      <MyIncidentsPanel supervisor={supervisor.trim()} />
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <AttendanceForm sites={sites} />
-        <IncidentForm sites={sites} />
+        <AttendanceForm sites={sites} supervisor={supervisor.trim()} />
+        <IncidentForm sites={sites} supervisor={supervisor.trim()} />
       </div>
     </div>
   );
@@ -70,7 +115,7 @@ function SupervisorConsole() {
 
 type SiteOpt = Pick<Site, "id" | "site_name" | "company_name">;
 
-function AttendanceForm({ sites }: { sites: SiteOpt[] }) {
+function AttendanceForm({ sites, supervisor }: { sites: SiteOpt[]; supervisor: string }) {
   const qc = useQueryClient();
   const [siteId, setSiteId] = useState("");
   const [guard, setGuard] = useState("");
@@ -86,6 +131,7 @@ function AttendanceForm({ sites }: { sites: SiteOpt[] }) {
         shift_type: shift as ShiftType,
         status: status as AttendanceStatus,
         notes: notes.trim() || null,
+        reported_by: supervisor || null,
       });
       if (error) throw error;
     },
@@ -110,6 +156,10 @@ function AttendanceForm({ sites }: { sites: SiteOpt[] }) {
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
+            if (!supervisor) {
+              toast.error("Enter your supervisor name at the top of the page first");
+              return;
+            }
             if (!siteId || !guard.trim() || !shift || !status) {
               toast.error("Please complete all required fields");
               return;
@@ -181,7 +231,7 @@ function AttendanceForm({ sites }: { sites: SiteOpt[] }) {
   );
 }
 
-function IncidentForm({ sites }: { sites: SiteOpt[] }) {
+function IncidentForm({ sites, supervisor }: { sites: SiteOpt[]; supervisor: string }) {
   const qc = useQueryClient();
   const [siteId, setSiteId] = useState("");
   const [type, setType] = useState<IncidentType | "">("");
@@ -197,6 +247,7 @@ function IncidentForm({ sites }: { sites: SiteOpt[] }) {
         other_type: type === "Other" ? otherType.trim() || null : null,
         severity: severity as Severity,
         description: description.trim() || null,
+        reported_by: supervisor || null,
       });
       if (error) throw error;
     },
@@ -207,6 +258,7 @@ function IncidentForm({ sites }: { sites: SiteOpt[] }) {
       setSeverity("");
       setDescription("");
       qc.invalidateQueries({ queryKey: ["incidents"] });
+      qc.invalidateQueries({ queryKey: ["my-incidents"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -222,6 +274,10 @@ function IncidentForm({ sites }: { sites: SiteOpt[] }) {
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
+            if (!supervisor) {
+              toast.error("Enter your supervisor name at the top of the page first");
+              return;
+            }
             if (!siteId || !type || !severity) {
               toast.error("Please complete all required fields");
               return;
@@ -302,6 +358,137 @@ function IncidentForm({ sites }: { sites: SiteOpt[] }) {
           </Button>
         </form>
       </CardContent>
+    </Card>
+  );
+}
+function MyIncidentsPanel({ supervisor }: { supervisor: string }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const { data: incidents = [] } = useQuery({
+    queryKey: ["my-incidents", supervisor],
+    enabled: !!supervisor,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("incident_logs")
+        .select("*, sites(site_name, company_name)")
+        .eq("reported_by", supervisor)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as (IncidentLog & { sites: { site_name: string; company_name: string } | null })[];
+    },
+  });
+
+  const selected = incidents.find((i) => i.id === openId) ?? null;
+  const protocol = selected ? INCIDENT_PROTOCOLS[selected.incident_type] : null;
+
+  if (!supervisor) {
+    return (
+      <Card>
+        <CardContent className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+          <FileWarning className="h-4 w-4" />
+          Enter your supervisor name above to see your reported incidents.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="h-5 w-5 text-primary" />
+          <CardTitle>My Reported Incidents</CardTitle>
+        </div>
+        <Badge variant="secondary" className="text-sm">
+          Total: {incidents.length}
+        </Badge>
+      </CardHeader>
+      <CardContent>
+        {incidents.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No incidents reported yet.</p>
+        ) : (
+          <ul className="divide-y divide-border rounded-md border border-border">
+            {incidents.slice(0, 10).map((inc) => (
+              <li key={inc.id}>
+                <button
+                  type="button"
+                  onClick={() => setOpenId(inc.id)}
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-muted/40"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">
+                        {inc.incident_type === "Other" ? inc.other_type || "Other" : inc.incident_type}
+                      </span>
+                      <span className={cn("rounded-full border px-2 py-0.5 text-xs", severityTone(inc.severity))}>
+                        {inc.severity}
+                      </span>
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {inc.sites?.site_name ?? "—"} · {new Date(inc.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <span className="text-xs text-primary">View protocol →</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+
+      <Dialog open={!!openId} onOpenChange={(o) => !o && setOpenId(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          {selected && protocol ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-primary" />
+                  {protocol.title}
+                </DialogTitle>
+                <DialogDescription>
+                  {selected.sites?.site_name ?? "Site"} ·{" "}
+                  <span className={cn("ml-1 rounded-full border px-2 py-0.5 text-xs", severityTone(selected.severity))}>
+                    {selected.severity} severity
+                  </span>
+                </DialogDescription>
+              </DialogHeader>
+
+              {selected.description ? (
+                <div className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+                  {selected.description}
+                </div>
+              ) : null}
+
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold text-primary">Immediate actions</h3>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  {protocol.immediate.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold text-primary">Follow-up</h3>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  {protocol.followUp.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+                <span className="font-semibold text-destructive">Escalation: </span>
+                {protocol.escalate}
+              </section>
+
+              <p className="text-xs text-muted-foreground">
+                General guidance based on standard security protocols. Always follow site-specific post orders and local laws.
+              </p>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

@@ -20,6 +20,7 @@ export type Database = {
           guard_name: string
           id: string
           notes: string | null
+          reported_by: string | null
           shift_type: Database["public"]["Enums"]["shift_type"]
           site_id: string
           status: Database["public"]["Enums"]["attendance_status"]
@@ -29,6 +30,7 @@ export type Database = {
           guard_name: string
           id?: string
           notes?: string | null
+          reported_by?: string | null
           shift_type: Database["public"]["Enums"]["shift_type"]
           site_id: string
           status: Database["public"]["Enums"]["attendance_status"]
@@ -38,6 +40,7 @@ export type Database = {
           guard_name?: string
           id?: string
           notes?: string | null
+          reported_by?: string | null
           shift_type?: Database["public"]["Enums"]["shift_type"]
           site_id?: string
           status?: Database["public"]["Enums"]["attendance_status"]
@@ -59,6 +62,7 @@ export type Database = {
           id: string
           incident_type: Database["public"]["Enums"]["incident_type"]
           other_type: string | null
+          reported_by: string | null
           resolved: boolean
           severity: Database["public"]["Enums"]["severity"]
           site_id: string
@@ -69,6 +73,7 @@ export type Database = {
           id?: string
           incident_type: Database["public"]["Enums"]["incident_type"]
           other_type?: string | null
+          reported_by?: string | null
           resolved?: boolean
           severity: Database["public"]["Enums"]["severity"]
           site_id: string
@@ -79,6 +84,7 @@ export type Database = {
           id?: string
           incident_type?: Database["public"]["Enums"]["incident_type"]
           other_type?: string | null
+          reported_by?: string | null
           resolved?: boolean
           severity?: Database["public"]["Enums"]["severity"]
           site_id?: string
