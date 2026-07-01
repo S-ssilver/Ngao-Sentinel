@@ -1,0 +1,5 @@
+# Silverline Station
+
+> A dark-themed security operations management platform for tracking sites, guard attendance, incident reports, and supervisor logs.
+
+Silverline Station consolidates site management, attendance logging, incident reporting, and real-time operational dashboards into a single interface for security teams and supervisors. It is designed for authenticated users managing day-to-day security operations rather than public marketing content.
