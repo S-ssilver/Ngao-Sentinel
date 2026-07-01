@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ClipboardCheck, ShieldAlert } from "lucide-react";
+import { ClipboardCheck, ShieldAlert, UserCog, FileWarning } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -18,16 +18,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import {
   ATTENDANCE_STATUSES,
   INCIDENT_TYPES,
   SEVERITIES,
   SHIFT_TYPES,
   type AttendanceStatus,
+  type IncidentLog,
   type IncidentType,
   type Severity,
   type ShiftType,
   type Site,
+  severityTone,
 } from "@/lib/silverline";
+import { INCIDENT_PROTOCOLS } from "@/lib/incident-protocols";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/supervisor")({
   head: () => ({
@@ -39,7 +51,21 @@ export const Route = createFileRoute("/supervisor")({
   component: SupervisorConsole,
 });
 
+const SUPERVISOR_STORAGE_KEY = "silverline.supervisor";
+
 function SupervisorConsole() {
+  const [supervisor, setSupervisor] = useState("");
+
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? window.localStorage.getItem(SUPERVISOR_STORAGE_KEY) : null;
+    if (stored) setSupervisor(stored);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (supervisor.trim()) window.localStorage.setItem(SUPERVISOR_STORAGE_KEY, supervisor.trim());
+  }, [supervisor]);
+
   const { data: sites = [] } = useQuery({
     queryKey: ["sites", "active-list"],
     queryFn: async () => {
@@ -55,14 +81,33 @@ function SupervisorConsole() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">Supervisor Console</h1>
-        <p className="text-sm text-muted-foreground">Log attendance and incidents from the field.</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold sm:text-3xl">Supervisor Console</h1>
+          <p className="text-sm text-muted-foreground">Log attendance and incidents from the field.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <UserCog className="h-4 w-4 text-muted-foreground" />
+          <div className="space-y-1">
+            <Label htmlFor="supervisor" className="text-xs text-muted-foreground">
+              Supervisor on duty
+            </Label>
+            <Input
+              id="supervisor"
+              value={supervisor}
+              onChange={(e) => setSupervisor(e.target.value)}
+              placeholder="e.g. Sgt. Morales"
+              className="w-56"
+            />
+          </div>
+        </div>
       </div>
 
+      <MyIncidentsPanel supervisor={supervisor.trim()} />
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <AttendanceForm sites={sites} />
-        <IncidentForm sites={sites} />
+        <AttendanceForm sites={sites} supervisor={supervisor.trim()} />
+        <IncidentForm sites={sites} supervisor={supervisor.trim()} />
       </div>
     </div>
   );
@@ -70,7 +115,7 @@ function SupervisorConsole() {
 
 type SiteOpt = Pick<Site, "id" | "site_name" | "company_name">;
 
-function AttendanceForm({ sites }: { sites: SiteOpt[] }) {
+function AttendanceForm({ sites, supervisor }: { sites: SiteOpt[]; supervisor: string }) {
   const qc = useQueryClient();
   const [siteId, setSiteId] = useState("");
   const [guard, setGuard] = useState("");
@@ -86,6 +131,7 @@ function AttendanceForm({ sites }: { sites: SiteOpt[] }) {
         shift_type: shift as ShiftType,
         status: status as AttendanceStatus,
         notes: notes.trim() || null,
+        reported_by: supervisor || null,
       });
       if (error) throw error;
     },
@@ -110,6 +156,10 @@ function AttendanceForm({ sites }: { sites: SiteOpt[] }) {
           className="space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
+            if (!supervisor) {
+              toast.error("Enter your supervisor name at the top of the page first");
+              return;
+            }
             if (!siteId || !guard.trim() || !shift || !status) {
               toast.error("Please complete all required fields");
               return;
