@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Building2, MapPin, Plus, Search, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ export const Route = createFileRoute("/sites")({
 
 function SitesPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -113,8 +114,14 @@ function SitesPage() {
                   </tr>
                 ) : (
                   filtered.map((s) => (
-                    <tr key={s.id} className="border-t border-border">
-                      <td className="px-3 py-2 font-medium">{s.site_name}</td>
+                    <tr
+                      key={s.id}
+                      className="cursor-pointer border-t border-border transition hover:bg-muted/40"
+                      onClick={() =>
+                        navigate({ to: "/sites/$siteId", params: { siteId: s.id } })
+                      }
+                    >
+                      <td className="px-3 py-2 font-medium text-primary">{s.site_name}</td>
                       <td className="px-3 py-2 text-muted-foreground">{s.company_name}</td>
                       <td className="px-3 py-2 text-muted-foreground">{s.location_code ?? "—"}</td>
                       <td className="px-3 py-2 text-muted-foreground">{s.address ?? "—"}</td>

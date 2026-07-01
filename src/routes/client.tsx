@@ -5,6 +5,11 @@ import { CheckCircle2, ClipboardList, ShieldAlert } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { MetricCard } from "@/components/MetricCard";
+import { ReportButtons } from "@/components/ReportButtons";
+import {
+  IncidentDetailsDialog,
+  type IncidentWithSite,
+} from "@/components/IncidentDetailsDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -46,6 +51,7 @@ function startOfMonthISO() {
 }
 
 function ClientPortal() {
+  const [openIncident, setOpenIncident] = useState<IncidentWithSite | null>(null);
   const sitesQ = useQuery({
     queryKey: ["sites", "lookup"],
     queryFn: async () => {
@@ -116,9 +122,12 @@ function ClientPortal() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">Client Portal</h1>
-        <p className="text-sm text-muted-foreground">Attendance, incidents, and reports.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold sm:text-3xl">Client Portal</h1>
+          <p className="text-sm text-muted-foreground">Attendance, incidents, and reports.</p>
+        </div>
+        <ReportButtons scope="client" title="Client portfolio report" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -219,7 +228,19 @@ function ClientPortal() {
                       </tr>
                     ) : (
                       filteredIncidents.map((i) => (
-                        <tr key={i.id} className="border-t border-border">
+                        <tr
+                          key={i.id}
+                          className="cursor-pointer border-t border-border transition hover:bg-muted/40"
+                          onClick={() => {
+                            const site = sitesById.get(i.site_id);
+                            setOpenIncident({
+                              ...i,
+                              sites: site
+                                ? { site_name: site.site_name, company_name: site.company_name }
+                                : null,
+                            });
+                          }}
+                        >
                           <td className="px-3 py-2 text-muted-foreground">
                             {new Date(i.created_at).toLocaleString()}
                           </td>
@@ -252,6 +273,16 @@ function ClientPortal() {
             </TabsContent>
 
             <TabsContent value="reports" className="mt-4">
+              <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
+                <p className="text-sm font-medium">Automated Reporting</p>
+                <p className="text-xs text-muted-foreground">
+                  Every report includes Verified Proof of Service and timestamped liability
+                  documentation — a defensible audit trail for every guard shift.
+                </p>
+                <div className="mt-3">
+                  <ReportButtons scope="client" title="Client portfolio report" />
+                </div>
+              </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <ReportTile label="Total attendance entries (today)" value={filteredAttendance.length} />
                 <ReportTile
@@ -267,6 +298,12 @@ function ClientPortal() {
           </Tabs>
         </CardContent>
       </Card>
+
+      <IncidentDetailsDialog
+        incident={openIncident}
+        open={!!openIncident}
+        onOpenChange={(o) => !o && setOpenIncident(null)}
+      />
     </div>
   );
 }

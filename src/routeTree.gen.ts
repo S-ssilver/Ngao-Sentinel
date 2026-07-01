@@ -13,6 +13,7 @@ import { Route as SupervisorRouteImport } from './routes/supervisor'
 import { Route as SitesRouteImport } from './routes/sites'
 import { Route as ClientRouteImport } from './routes/client'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SitesSiteIdRouteImport } from './routes/sites.$siteId'
 
 const SupervisorRoute = SupervisorRouteImport.update({
   id: '/supervisor',
@@ -34,38 +35,46 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitesSiteIdRoute = SitesSiteIdRouteImport.update({
+  id: '/$siteId',
+  path: '/$siteId',
+  getParentRoute: () => SitesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/client': typeof ClientRoute
-  '/sites': typeof SitesRoute
+  '/sites': typeof SitesRouteWithChildren
   '/supervisor': typeof SupervisorRoute
+  '/sites/$siteId': typeof SitesSiteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/client': typeof ClientRoute
-  '/sites': typeof SitesRoute
+  '/sites': typeof SitesRouteWithChildren
   '/supervisor': typeof SupervisorRoute
+  '/sites/$siteId': typeof SitesSiteIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/client': typeof ClientRoute
-  '/sites': typeof SitesRoute
+  '/sites': typeof SitesRouteWithChildren
   '/supervisor': typeof SupervisorRoute
+  '/sites/$siteId': typeof SitesSiteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/client' | '/sites' | '/supervisor'
+  fullPaths: '/' | '/client' | '/sites' | '/supervisor' | '/sites/$siteId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/client' | '/sites' | '/supervisor'
-  id: '__root__' | '/' | '/client' | '/sites' | '/supervisor'
+  to: '/' | '/client' | '/sites' | '/supervisor' | '/sites/$siteId'
+  id: '__root__' | '/' | '/client' | '/sites' | '/supervisor' | '/sites/$siteId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClientRoute: typeof ClientRoute
-  SitesRoute: typeof SitesRoute
+  SitesRoute: typeof SitesRouteWithChildren
   SupervisorRoute: typeof SupervisorRoute
 }
 
@@ -99,13 +108,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sites/$siteId': {
+      id: '/sites/$siteId'
+      path: '/$siteId'
+      fullPath: '/sites/$siteId'
+      preLoaderRoute: typeof SitesSiteIdRouteImport
+      parentRoute: typeof SitesRoute
+    }
   }
 }
+
+interface SitesRouteChildren {
+  SitesSiteIdRoute: typeof SitesSiteIdRoute
+}
+
+const SitesRouteChildren: SitesRouteChildren = {
+  SitesSiteIdRoute: SitesSiteIdRoute,
+}
+
+const SitesRouteWithChildren = SitesRoute._addFileChildren(SitesRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClientRoute: ClientRoute,
-  SitesRoute: SitesRoute,
+  SitesRoute: SitesRouteWithChildren,
   SupervisorRoute: SupervisorRoute,
 }
 export const routeTree = rootRouteImport
