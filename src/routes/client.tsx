@@ -303,6 +303,7 @@ function ClientPortal() {
         incident={openIncident}
         open={!!openIncident}
         onOpenChange={(o) => !o && setOpenIncident(null)}
+        showProtocol={false}
       />
     </div>
   );

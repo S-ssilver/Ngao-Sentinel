@@ -26,6 +26,14 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   ATTENDANCE_STATUSES,
   INCIDENT_TYPES,
   SEVERITIES,
@@ -397,7 +405,7 @@ function MyIncidentsPanel({ supervisor }: { supervisor: string }) {
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <ShieldAlert className="h-5 w-5 text-primary" />
-          <CardTitle>My Reported Incidents</CardTitle>
+          <CardTitle>My Incidents</CardTitle>
         </div>
         <Badge variant="secondary" className="text-sm">
           Total: {incidents.length}
@@ -407,32 +415,53 @@ function MyIncidentsPanel({ supervisor }: { supervisor: string }) {
         {incidents.length === 0 ? (
           <p className="text-sm text-muted-foreground">No incidents reported yet.</p>
         ) : (
-          <ul className="divide-y divide-border rounded-md border border-border">
-            {incidents.slice(0, 10).map((inc) => (
-              <li key={inc.id}>
-                <button
-                  type="button"
-                  onClick={() => setOpenId(inc.id)}
-                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-muted/40"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
-                        {inc.incident_type === "Other" ? inc.other_type || "Other" : inc.incident_type}
-                      </span>
-                      <span className={cn("rounded-full border px-2 py-0.5 text-xs", severityTone(inc.severity))}>
+          <div className="overflow-x-auto rounded-md border border-border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date/Time</TableHead>
+                  <TableHead>Site</TableHead>
+                  <TableHead>Incident Type</TableHead>
+                  <TableHead>Severity</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {incidents.map((inc) => (
+                  <TableRow
+                    key={inc.id}
+                    className="cursor-pointer"
+                    onClick={() => setOpenId(inc.id)}
+                  >
+                    <TableCell className="text-muted-foreground">
+                      {new Date(inc.created_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell>{inc.sites?.site_name ?? "—"}</TableCell>
+                    <TableCell className="font-medium">
+                      {inc.incident_type === "Other"
+                        ? inc.other_type || "Other"
+                        : inc.incident_type}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={cn(
+                          "rounded-full border px-2 py-0.5 text-xs",
+                          severityTone(inc.severity),
+                        )}
+                      >
                         {inc.severity}
                       </span>
-                    </div>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {inc.sites?.site_name ?? "—"} · {new Date(inc.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                  <span className="text-xs text-primary">View protocol →</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={inc.resolved ? "secondary" : "destructive"}>
+                        {inc.resolved ? "Resolved" : "Open"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
 
