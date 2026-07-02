@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 
 const navItems = [
   { to: "/", label: "Operations" },
-  { to: "/sites", label: "Sites" },
   { to: "/client", label: "Client Portal" },
   { to: "/supervisor", label: "Supervisor" },
 ] as const;

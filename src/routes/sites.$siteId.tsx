@@ -1,10 +1,18 @@
 import { useState } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Building2, ClipboardList, MapPin, ShieldAlert } from "lucide-react";
+import { ArrowLeft, ShieldAlert } from "lucide-react";
+import {
+  Bar,
+  BarChart,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { supabase } from "@/integrations/supabase/client";
-import { MetricCard } from "@/components/MetricCard";
 import { ReportButtons } from "@/components/ReportButtons";
 import {
   IncidentDetailsDialog,
@@ -15,10 +23,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { INCIDENT_PROTOCOLS } from "@/lib/incident-protocols";
+import {
   severityTone,
   statusTone,
   type AttendanceLog,
   type IncidentLog,
+  type IncidentType,
   type Site,
 } from "@/lib/silverline";
 
@@ -42,6 +59,7 @@ function SiteDetailsPage() {
   const { siteId } = Route.useParams();
   const router = useRouter();
   const [openIncident, setOpenIncident] = useState<IncidentWithSite | null>(null);
+  const [openProtocol, setOpenProtocol] = useState<IncidentType | null>(null);
 
   const siteQ = useQuery({
     queryKey: ["site", siteId],
@@ -84,6 +102,26 @@ function SiteDetailsPage() {
   const attendance = attendanceQ.data ?? [];
   const incidents = incidentsQ.data ?? [];
 
+  // Aggregate incident types for the site chart
+  const typeCounts = incidents.reduce<Record<string, number>>((acc, i) => {
+    const key = i.incident_type === "Other" && i.other_type ? i.other_type : i.incident_type;
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+  const typeChartData = Object.entries(typeCounts)
+    .map(([type, count]) => ({ type, count }))
+    .sort((a, b) => b.count - a.count);
+  const topType = typeChartData[0];
+  // Map top label back to a real IncidentType for the SOP link
+  const topIncidentType: IncidentType | null = topType
+    ? incidents.find(
+        (i) =>
+          (i.incident_type === "Other" && i.other_type === topType.type) ||
+          i.incident_type === topType.type,
+      )?.incident_type ?? null
+    : null;
+  const topProtocol = topIncidentType ? INCIDENT_PROTOCOLS[topIncidentType] : null;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -98,21 +136,18 @@ function SiteDetailsPage() {
             {site?.company_name ?? ""}
             {site?.location_code ? ` · ${site.location_code}` : ""}
           </p>
+          {site?.address ? (
+            <p className="text-sm text-muted-foreground">{site.address}</p>
+          ) : null}
+          <div className="mt-2">
+            <Badge variant={site?.active ? "default" : "secondary"}>
+              {site?.active ? "Active" : "Inactive"}
+            </Badge>
+          </div>
         </div>
-        <Link to="/sites" className="text-sm text-muted-foreground hover:text-primary">
-          All sites →
+        <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
+          ← Operations
         </Link>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <MetricCard label="Attendance entries" value={attendance.length} icon={ClipboardList} />
-        <MetricCard label="Total incidents" value={incidents.length} icon={ShieldAlert} tone="danger" />
-        <MetricCard
-          label="Status"
-          value={site?.active ? "Active" : "Inactive"}
-          icon={site?.active ? Building2 : MapPin}
-          tone={site?.active ? "ok" : "default"}
-        />
       </div>
 
       <Card>
@@ -134,75 +169,87 @@ function SiteDetailsPage() {
 
       <Card>
         <CardContent className="p-4 sm:p-6">
-          <Tabs defaultValue="attendance">
+          <Tabs defaultValue="incidents">
             <TabsList className="mb-4">
-              <TabsTrigger value="attendance">Attendance Logs</TabsTrigger>
-              <TabsTrigger value="incidents">Incident Logs</TabsTrigger>
+              <TabsTrigger value="incidents">Incidents</TabsTrigger>
+              <TabsTrigger value="attendance">Attendance</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="attendance">
-              <div className="overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-sm">
-                  <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
-                    <tr>
-                      <th className="px-3 py-2 text-left">Timestamp</th>
-                      <th className="px-3 py-2 text-left">Guard</th>
-                      <th className="px-3 py-2 text-left">Shift</th>
-                      <th className="px-3 py-2 text-left">Status</th>
-                      <th className="px-3 py-2 text-left">Reported by</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {attendance.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
-                          No attendance logs.
-                        </td>
-                      </tr>
-                    ) : (
-                      attendance.map((a) => (
-                        <tr key={a.id} className="border-t border-border">
-                          <td className="px-3 py-2 text-muted-foreground">
-                            {new Date(a.created_at).toLocaleString()}
-                          </td>
-                          <td className="px-3 py-2">{a.guard_name}</td>
-                          <td className="px-3 py-2">
-                            <Badge variant="secondary">{a.shift_type}</Badge>
-                          </td>
-                          <td className="px-3 py-2">
-                            <span
-                              className={`inline-flex rounded-md border px-2 py-0.5 text-xs ${statusTone(a.status)}`}
-                            >
-                              {a.status}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2 text-muted-foreground">
-                            {a.reported_by ?? "—"}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </TabsContent>
+            <TabsContent value="incidents" className="space-y-4">
+              {typeChartData.length > 0 ? (
+                <div className="rounded-lg border border-border p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold">Most frequent incident types</h3>
+                    {topType ? (
+                      <span className="rounded-full border border-destructive/40 bg-destructive/15 px-2 py-0.5 text-xs font-medium text-destructive">
+                        Common Risk: {topType.type}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={typeChartData} margin={{ top: 8, right: 8, bottom: 24, left: 0 }}>
+                        <XAxis
+                          dataKey="type"
+                          stroke="oklch(0.68 0.02 250)"
+                          fontSize={10}
+                          angle={-20}
+                          textAnchor="end"
+                          interval={0}
+                          height={50}
+                        />
+                        <YAxis stroke="oklch(0.68 0.02 250)" fontSize={11} allowDecimals={false} />
+                        <Tooltip
+                          contentStyle={{
+                            background: "oklch(0.21 0.014 250)",
+                            border: "1px solid oklch(0.3 0.015 250)",
+                            borderRadius: 8,
+                            color: "oklch(0.96 0.005 250)",
+                          }}
+                        />
+                        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                          {typeChartData.map((entry, idx) => (
+                            <Cell
+                              key={entry.type}
+                              fill={idx === 0 ? "oklch(0.62 0.22 25)" : "oklch(0.78 0.13 220)"}
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {topProtocol && topIncidentType ? (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Most common: <span className="font-medium text-foreground">{topType.type}</span>
+                      {" — "}
+                      <button
+                        type="button"
+                        onClick={() => setOpenProtocol(topIncidentType)}
+                        className="text-primary underline underline-offset-2 hover:text-primary/80"
+                      >
+                        View {topProtocol.title}
+                      </button>
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
 
-            <TabsContent value="incidents">
               <div className="overflow-x-auto rounded-lg border border-border">
                 <table className="w-full text-sm">
                   <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
                     <tr>
-                      <th className="px-3 py-2 text-left">When</th>
+                      <th className="px-3 py-2 text-left">Date/Time</th>
                       <th className="px-3 py-2 text-left">Type</th>
                       <th className="px-3 py-2 text-left">Severity</th>
-                      <th className="px-3 py-2 text-left">Reported by</th>
+                      <th className="px-3 py-2 text-left">Supervisor</th>
                       <th className="px-3 py-2 text-left">Status</th>
+                      <th className="px-3 py-2 text-left">Description</th>
                     </tr>
                   </thead>
                   <tbody>
                     {incidents.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
+                        <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
                           No incidents.
                         </td>
                       </tr>
@@ -238,6 +285,60 @@ function SiteDetailsPage() {
                               {i.resolved ? "Resolved" : "Open"}
                             </Badge>
                           </td>
+                          <td className="px-3 py-2 text-muted-foreground max-w-[280px] truncate">
+                            {i.description ?? "—"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="attendance">
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-sm">
+                  <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Date</th>
+                      <th className="px-3 py-2 text-left">Guard Name</th>
+                      <th className="px-3 py-2 text-left">Guard ID</th>
+                      <th className="px-3 py-2 text-left">Shift</th>
+                      <th className="px-3 py-2 text-left">Status</th>
+                      <th className="px-3 py-2 text-left">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attendance.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
+                          No attendance logs.
+                        </td>
+                      </tr>
+                    ) : (
+                      attendance.map((a) => (
+                        <tr key={a.id} className="border-t border-border">
+                          <td className="px-3 py-2 text-muted-foreground">
+                            {new Date(a.created_at).toLocaleString()}
+                          </td>
+                          <td className="px-3 py-2">{a.guard_name}</td>
+                          <td className="px-3 py-2 text-muted-foreground font-mono text-xs">
+                            G-{a.id.slice(0, 6).toUpperCase()}
+                          </td>
+                          <td className="px-3 py-2">
+                            <Badge variant="secondary">{a.shift_type}</Badge>
+                          </td>
+                          <td className="px-3 py-2">
+                            <span
+                              className={`inline-flex rounded-md border px-2 py-0.5 text-xs ${statusTone(a.status)}`}
+                            >
+                              {a.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-muted-foreground max-w-[280px] truncate">
+                            {a.notes ?? "—"}
+                          </td>
                         </tr>
                       ))
                     )}
@@ -254,6 +355,44 @@ function SiteDetailsPage() {
         open={!!openIncident}
         onOpenChange={(o) => !o && setOpenIncident(null)}
       />
+
+      <Dialog open={!!openProtocol} onOpenChange={(o) => !o && setOpenProtocol(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          {openProtocol ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-primary" />
+                  {INCIDENT_PROTOCOLS[openProtocol].title}
+                </DialogTitle>
+                <DialogDescription>
+                  Standard worldwide SOP for {openProtocol} incidents.
+                </DialogDescription>
+              </DialogHeader>
+              <section className="space-y-2">
+                <h4 className="text-sm font-semibold">Immediate actions</h4>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  {INCIDENT_PROTOCOLS[openProtocol].immediate.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </section>
+              <section className="space-y-2">
+                <h4 className="text-sm font-semibold">Follow-up</h4>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  {INCIDENT_PROTOCOLS[openProtocol].followUp.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </section>
+              <section className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+                <span className="font-semibold text-destructive">Escalation: </span>
+                {INCIDENT_PROTOCOLS[openProtocol].escalate}
+              </section>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bar,
@@ -17,7 +17,14 @@ import { AlertTriangle, MapPin, UserMinus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MetricCard } from "@/components/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { INCIDENT_TYPES, SEVERITIES, type IncidentLog } from "@/lib/silverline";
+import { Badge } from "@/components/ui/badge";
+import {
+  INCIDENT_TYPES,
+  SEVERITIES,
+  type AttendanceLog,
+  type IncidentLog,
+  type Site,
+} from "@/lib/silverline";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -37,6 +44,8 @@ const SEVERITY_COLORS: Record<string, string> = {
 
 function OperationsDashboard() {
   const sinceISO = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const navigate = useNavigate();
+  const todayISO = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
 
   const sitesQ = useQuery({
     queryKey: ["sites", "active-count"],
@@ -83,6 +92,39 @@ function OperationsDashboard() {
         .gte("created_at", sinceISO);
       if (error) throw error;
       return data as Pick<IncidentLog, "incident_type" | "severity" | "created_at">[];
+    },
+  });
+
+  const sitesQAll = useQuery({
+    queryKey: ["sites", "overview"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("sites").select("*").order("site_name");
+      if (error) throw error;
+      return data as Site[];
+    },
+  });
+
+  const todayAttQ = useQuery({
+    queryKey: ["attendance", "today"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("attendance_logs")
+        .select("site_id,status,created_at")
+        .gte("created_at", todayISO);
+      if (error) throw error;
+      return data as Pick<AttendanceLog, "site_id" | "status" | "created_at">[];
+    },
+  });
+
+  const openIncBySiteQ = useQuery({
+    queryKey: ["incidents", "open-by-site"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("incident_logs")
+        .select("site_id")
+        .eq("resolved", false);
+      if (error) throw error;
+      return data as { site_id: string }[];
     },
   });
 
@@ -184,6 +226,70 @@ function OperationsDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Sites Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left">Site Name</th>
+                  <th className="px-3 py-2 text-left">Company</th>
+                  <th className="px-3 py-2 text-left">Status</th>
+                  <th className="px-3 py-2 text-right">Guards Today</th>
+                  <th className="px-3 py-2 text-right">Open Incidents</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(sitesQAll.data ?? []).length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
+                      No sites yet.
+                    </td>
+                  </tr>
+                ) : (
+                  (sitesQAll.data ?? []).map((s) => {
+                    const guardsToday = (todayAttQ.data ?? []).filter(
+                      (a) => a.site_id === s.id && a.status === "Present",
+                    ).length;
+                    const openInc = (openIncBySiteQ.data ?? []).filter(
+                      (i) => i.site_id === s.id,
+                    ).length;
+                    return (
+                      <tr
+                        key={s.id}
+                        className="cursor-pointer border-t border-border transition hover:bg-muted/40"
+                        onClick={() =>
+                          navigate({ to: "/sites/$siteId", params: { siteId: s.id } })
+                        }
+                      >
+                        <td className="px-3 py-2 font-medium text-primary">{s.site_name}</td>
+                        <td className="px-3 py-2 text-muted-foreground">{s.company_name}</td>
+                        <td className="px-3 py-2">
+                          <Badge variant={s.active ? "default" : "secondary"}>
+                            {s.active ? "Active" : "Inactive"}
+                          </Badge>
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums">{guardsToday}</td>
+                        <td className="px-3 py-2 text-right tabular-nums">
+                          {openInc > 0 ? (
+                            <span className="font-semibold text-destructive">{openInc}</span>
+                          ) : (
+                            <span className="text-muted-foreground">0</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
