@@ -296,6 +296,10 @@ function ClientPortal() {
                 />
               </div>
             </TabsContent>
+
+            <TabsContent value="cameras" className="mt-4">
+              <ClientCameras />
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
