@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ShieldAlert } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Video, Maximize2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -173,6 +173,7 @@ function SiteDetailsPage() {
             <TabsList className="mb-4">
               <TabsTrigger value="incidents">Incidents</TabsTrigger>
               <TabsTrigger value="attendance">Attendance</TabsTrigger>
+              <TabsTrigger value="cctv">CCTV</TabsTrigger>
             </TabsList>
 
             <TabsContent value="incidents" className="space-y-4">
@@ -345,6 +346,10 @@ function SiteDetailsPage() {
                   </tbody>
                 </table>
               </div>
+            </TabsContent>
+
+            <TabsContent value="cctv">
+              <CctvGrid siteName={site?.site_name ?? "Site"} label="Live Feed" />
             </TabsContent>
           </Tabs>
         </CardContent>
