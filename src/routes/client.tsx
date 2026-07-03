@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, ClipboardList, ShieldAlert } from "lucide-react";
+import { CheckCircle2, ClipboardList, ShieldAlert, Video } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { MetricCard } from "@/components/MetricCard";
