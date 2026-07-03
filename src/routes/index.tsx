@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -12,12 +13,28 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AlertTriangle, MapPin, UserMinus } from "lucide-react";
+import { AlertTriangle, MapPin, UserMinus, UserPlus, Check, X, Trash2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { MetricCard } from "@/components/MetricCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   INCIDENT_TYPES,
   SEVERITIES,
@@ -25,11 +42,19 @@ import {
   type IncidentLog,
   type Site,
 } from "@/lib/silverline";
+import {
+  removeUser,
+  updateRequest,
+  upsertUser,
+  useTeamStore,
+  type Role,
+  type TeamUser,
+} from "@/lib/team-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Operations Dashboard — Silverline Station" },
+      { title: "Operations Dashboard — ARN Security" },
       { name: "description", content: "Live operations metrics and incident trends." },
     ],
   }),
