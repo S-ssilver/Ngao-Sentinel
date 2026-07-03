@@ -148,6 +148,7 @@ function ClientPortal() {
               <TabsTrigger value="attendance">Today's Attendance</TabsTrigger>
               <TabsTrigger value="incidents">Incidents</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
+              <TabsTrigger value="cameras">My Property Cameras</TabsTrigger>
             </TabsList>
 
             <FilterPills
