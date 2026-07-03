@@ -315,6 +315,262 @@ function OperationsDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      <TeamManagement sites={sitesQAll.data ?? []} />
     </div>
+  );
+}
+
+const ROLE_OPTIONS: Role[] = ["Operations Manager", "Supervisor", "Client", "Guard (Field)"];
+
+function TeamManagement({ sites }: { sites: Site[] }) {
+  const { users, requests } = useTeamStore();
+  const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<TeamUser | null>(null);
+  const [invited, setInvited] = useState<TeamUser | null>(null);
+
+  const pending = useMemo(
+    () => requests.filter((r) => r.status === "Pending"),
+    [requests],
+  );
+
+  function siteNames(ids: string[]) {
+    if (!ids.length) return "All sites";
+    return ids
+      .map((id) => sites.find((s) => s.id === id)?.site_name ?? "—")
+      .join(", ");
+  }
+
+  return (
+    <>
+      {pending.length > 0 ? (
+        <Card className="border-accent/50">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">
+              Access Requests
+              <Badge className="ml-2 bg-accent text-accent-foreground">{pending.length}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {pending.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3 text-sm"
+                >
+                  <div>
+                    <div className="font-medium">{r.name} <span className="text-muted-foreground">· {r.role}</span></div>
+                    <div className="text-xs text-muted-foreground">
+                      {r.email} · Requested {new Date(r.requestedAt).toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      onClick={() => updateRequest(r.id, "Approved")}
+                    >
+                      <Check className="mr-1 h-4 w-4" /> Approve
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => updateRequest(r.id, "Denied")}>
+                      <X className="mr-1 h-4 w-4" /> Deny
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Team Management</CardTitle>
+          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setAddOpen(true)}>
+            <UserPlus className="mr-1 h-4 w-4" /> Add User
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left">Name</th>
+                  <th className="px-3 py-2 text-left">Email</th>
+                  <th className="px-3 py-2 text-left">Role</th>
+                  <th className="px-3 py-2 text-left">Assigned Site(s)</th>
+                  <th className="px-3 py-2 text-left">Status</th>
+                  <th className="px-3 py-2 text-left">Last Login</th>
+                  <th className="px-3 py-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.length === 0 ? (
+                  <tr><td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">No users yet.</td></tr>
+                ) : users.map((u) => (
+                  <tr key={u.id} className="border-t border-border">
+                    <td className="px-3 py-2 font-medium">{u.name}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{u.email}</td>
+                    <td className="px-3 py-2">{u.role}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{siteNames(u.siteIds)}</td>
+                    <td className="px-3 py-2">
+                      <Badge
+                        variant={
+                          u.status === "Active" ? "default"
+                          : u.status === "Suspended" ? "destructive"
+                          : "secondary"
+                        }
+                      >
+                        {u.status}
+                      </Badge>
+                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">
+                      {u.lastLogin ? new Date(u.lastLogin).toLocaleString() : "—"}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex justify-end gap-1">
+                        <Button size="sm" variant="ghost" onClick={() => setEditing(u)}>Edit</Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            upsertUser({
+                              ...u,
+                              status: u.status === "Suspended" ? "Active" : "Suspended",
+                            })
+                          }
+                        >
+                          {u.status === "Suspended" ? "Reactivate" : "Suspend"}
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => removeUser(u.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <UserFormDialog
+        open={addOpen || !!editing}
+        user={editing}
+        sites={sites}
+        onClose={() => { setAddOpen(false); setEditing(null); }}
+        onSaved={(u, isNew) => { if (isNew) setInvited(u); }}
+      />
+
+      <Dialog open={!!invited} onOpenChange={(o) => !o && setInvited(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invitation sent</DialogTitle>
+          </DialogHeader>
+          <div className="rounded-md border border-border bg-muted/30 p-4 text-sm">
+            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Simulated email</div>
+            <div className="font-medium">To: {invited?.email}</div>
+            <div className="mt-2">Subject: You've been invited to ARN Security</div>
+            <p className="mt-3 text-muted-foreground">
+              Hi {invited?.name}, your Operations Manager has invited you to join
+              the ARN Security Operations Platform as <b>{invited?.role}</b>. Click
+              the link below to set your password and sign in.
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Powered by Silverline Tech
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function UserFormDialog({
+  open, user, sites, onClose, onSaved,
+}: {
+  open: boolean;
+  user: TeamUser | null;
+  sites: Site[];
+  onClose: () => void;
+  onSaved: (u: TeamUser, isNew: boolean) => void;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<Role>("Supervisor");
+  const [siteIds, setSiteIds] = useState<string[]>([]);
+
+  // reset on open
+  useMemo(() => {
+    if (open) {
+      setName(user?.name ?? "");
+      setEmail(user?.email ?? "");
+      setRole(user?.role ?? "Supervisor");
+      setSiteIds(user?.siteIds ?? []);
+    }
+  }, [open, user]);
+
+  function toggleSite(id: string) {
+    setSiteIds((prev) => prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]);
+  }
+
+  function save() {
+    const isNew = !user;
+    const record: TeamUser = {
+      id: user?.id ?? crypto.randomUUID(),
+      name, email, role, siteIds,
+      status: user?.status ?? "Pending",
+      lastLogin: user?.lastLogin ?? null,
+    };
+    upsertUser(record);
+    onSaved(record, isNew);
+    onClose();
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{user ? "Edit user" : "Add user"}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div><Label>Full Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+          <div>
+            <Label>Role</Label>
+            <Select value={role} onValueChange={(v) => setRole(v as Role)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {ROLE_OPTIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Assigned Site(s)</Label>
+            <div className="mt-1 max-h-40 overflow-y-auto rounded-md border border-border p-2 text-sm">
+              {sites.length === 0 ? (
+                <div className="text-muted-foreground">No sites available.</div>
+              ) : sites.map((s) => (
+                <label key={s.id} className="flex items-center gap-2 py-1">
+                  <input
+                    type="checkbox"
+                    checked={siteIds.includes(s.id)}
+                    onChange={() => toggleSite(s.id)}
+                  />
+                  {s.site_name}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="ghost" onClick={onClose}>Cancel</Button>
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={save}>
+              {user ? "Save" : "Send invitation"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
