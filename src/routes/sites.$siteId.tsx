@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ShieldAlert } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Video, Maximize2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -173,6 +173,7 @@ function SiteDetailsPage() {
             <TabsList className="mb-4">
               <TabsTrigger value="incidents">Incidents</TabsTrigger>
               <TabsTrigger value="attendance">Attendance</TabsTrigger>
+              <TabsTrigger value="cctv">CCTV</TabsTrigger>
             </TabsList>
 
             <TabsContent value="incidents" className="space-y-4">
@@ -346,6 +347,10 @@ function SiteDetailsPage() {
                 </table>
               </div>
             </TabsContent>
+
+            <TabsContent value="cctv">
+              <CctvGrid siteName={site?.site_name ?? "Site"} label="Live Feed" />
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
@@ -390,6 +395,73 @@ function SiteDetailsPage() {
                 {INCIDENT_PROTOCOLS[openProtocol].escalate}
               </section>
             </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function CctvGrid({ siteName, label }: { siteName: string; label: string }) {
+  const cameras = [
+    { name: "Front Gate", img: "https://images.unsplash.com/photo-1557183050-52a5470b3c98?w=800&q=60" },
+    { name: "Parking Area", img: "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=800&q=60" },
+    { name: "Main Entrance", img: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=800&q=60" },
+    { name: "Rear Perimeter", img: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800&q=60" },
+  ];
+  const [full, setFull] = useState<{ name: string; img: string } | null>(null);
+  const updated = new Date().toLocaleTimeString();
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {cameras.map((c) => (
+          <div key={c.name} className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="relative aspect-video bg-black">
+              <img src={c.img} alt={c.name} className="h-full w-full object-cover opacity-90" />
+              <div className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[11px] text-white">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
+                </span>
+                {label}
+              </div>
+              <button
+                onClick={() => setFull(c)}
+                className="absolute right-2 top-2 rounded-md bg-black/70 p-1.5 text-white hover:bg-black"
+                aria-label="Full Screen"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex items-center justify-between p-2 text-xs">
+              <div className="flex items-center gap-1.5 font-medium">
+                <Video className="h-3.5 w-3.5 text-accent" /> {c.name}
+              </div>
+              <span className="text-muted-foreground">Updated {updated}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Connect your existing CCTV system to enable live feeds — {siteName}. Contact
+        ARN Security for setup assistance.
+      </p>
+      <Dialog open={!!full} onOpenChange={(o) => !o && setFull(null)}>
+        <DialogContent className="sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{full?.name}</DialogTitle>
+          </DialogHeader>
+          {full ? (
+            <div className="relative aspect-video overflow-hidden rounded-md bg-black">
+              <img src={full.img} alt={full.name} className="h-full w-full object-cover" />
+              <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-xs text-white">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
+                </span>
+                {label}
+              </div>
+            </div>
           ) : null}
         </DialogContent>
       </Dialog>

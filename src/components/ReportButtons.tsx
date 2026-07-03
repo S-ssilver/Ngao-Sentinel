@@ -118,21 +118,22 @@ function buildPDF({
   const label = range === "week" ? "Weekly" : "Monthly";
 
   // Header band
-  doc.setFillColor(15, 23, 42);
+  // ARN navy header
+  doc.setFillColor(26, 60, 94);
   doc.rect(0, 0, doc.internal.pageSize.getWidth(), 90, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(18);
-  doc.text("Silverline Station", 40, 40);
+  doc.text("ARN Security", 40, 40);
   doc.setFontSize(12);
   doc.text(`${label} Service Report`, 40, 60);
   doc.setFontSize(9);
   doc.text(`Generated ${generatedAt.toLocaleString()}`, 40, 76);
 
-  // Verified badge (top right)
+  // Verified badge (top right) — gold
   const pageW = doc.internal.pageSize.getWidth();
-  doc.setFillColor(34, 197, 94);
+  doc.setFillColor(201, 168, 76);
   doc.roundedRect(pageW - 220, 26, 180, 40, 6, 6, "F");
-  doc.setTextColor(255, 255, 255);
+  doc.setTextColor(26, 60, 94);
   doc.setFontSize(10);
   doc.text("VERIFIED PROOF OF SERVICE", pageW - 210, 44);
   doc.setFontSize(8);
@@ -234,12 +235,14 @@ function buildPDF({
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
     doc.text(
-      `Silverline Station • Verified Proof of Service • Document ID: SLS-${generatedAt.getTime().toString(36).toUpperCase()} • Page ${p} of ${pageCount}`,
+      `ARN Security • Verified Proof of Service • Document ID: ARN-${generatedAt.getTime().toString(36).toUpperCase()} • Page ${p} of ${pageCount}`,
       40,
-      doc.internal.pageSize.getHeight() - 20,
+      doc.internal.pageSize.getHeight() - 28,
     );
+    doc.setTextColor(150, 150, 150);
+    doc.text("Powered by Silverline Tech", 40, doc.internal.pageSize.getHeight() - 16);
   }
 
-  const fname = `silverline-${range}-report-${generatedAt.toISOString().slice(0, 10)}.pdf`;
+  const fname = `arn-security-${range}-report-${generatedAt.toISOString().slice(0, 10)}.pdf`;
   doc.save(fname);
 }

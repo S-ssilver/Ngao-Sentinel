@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, ClipboardList, ShieldAlert } from "lucide-react";
+import { CheckCircle2, ClipboardList, ShieldAlert, Video } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { MetricCard } from "@/components/MetricCard";
@@ -148,6 +148,7 @@ function ClientPortal() {
               <TabsTrigger value="attendance">Today's Attendance</TabsTrigger>
               <TabsTrigger value="incidents">Incidents</TabsTrigger>
               <TabsTrigger value="reports">Reports</TabsTrigger>
+              <TabsTrigger value="cameras">My Property Cameras</TabsTrigger>
             </TabsList>
 
             <FilterPills
@@ -295,6 +296,10 @@ function ClientPortal() {
                 />
               </div>
             </TabsContent>
+
+            <TabsContent value="cameras" className="mt-4">
+              <ClientCameras />
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
@@ -368,6 +373,46 @@ function FilterPills(props: {
           ))}
         </SelectContent>
       </Select>
+    </div>
+  );
+}
+
+function ClientCameras() {
+  const cameras = [
+    { name: "Front Door", img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=60" },
+    { name: "Driveway", img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=60" },
+    { name: "Backyard", img: "https://images.unsplash.com/photo-1505692794403-34d4982d1a4e?w=800&q=60" },
+    { name: "Side Gate", img: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800&q=60" },
+  ];
+  const updated = new Date().toLocaleTimeString();
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {cameras.map((c) => (
+          <div key={c.name} className="overflow-hidden rounded-lg border border-border bg-card">
+            <div className="relative aspect-video bg-black">
+              <img src={c.img} alt={c.name} className="h-full w-full object-cover opacity-90" />
+              <div className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-black/70 px-2 py-0.5 text-[11px] text-white">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
+                </span>
+                Live Feed
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-2 text-xs">
+              <div className="flex items-center gap-1.5 font-medium">
+                <Video className="h-3.5 w-3.5 text-accent" /> {c.name}
+              </div>
+              <span className="text-muted-foreground">Updated {updated}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Connect your existing CCTV system to enable live feeds. Contact ARN
+        Security for setup assistance.
+      </p>
     </div>
   );
 }

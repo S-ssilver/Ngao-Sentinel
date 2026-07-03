@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SupervisorRouteImport } from './routes/supervisor'
 import { Route as SitesRouteImport } from './routes/sites'
+import { Route as GuardRouteImport } from './routes/guard'
 import { Route as ClientRouteImport } from './routes/client'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SitesSiteIdRouteImport } from './routes/sites.$siteId'
 
@@ -25,9 +27,19 @@ const SitesRoute = SitesRouteImport.update({
   path: '/sites',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuardRoute = GuardRouteImport.update({
+  id: '/guard',
+  path: '/guard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientRoute = ClientRouteImport.update({
   id: '/client',
   path: '/client',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,14 +55,18 @@ const SitesSiteIdRoute = SitesSiteIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/client': typeof ClientRoute
+  '/guard': typeof GuardRoute
   '/sites': typeof SitesRouteWithChildren
   '/supervisor': typeof SupervisorRoute
   '/sites/$siteId': typeof SitesSiteIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/client': typeof ClientRoute
+  '/guard': typeof GuardRoute
   '/sites': typeof SitesRouteWithChildren
   '/supervisor': typeof SupervisorRoute
   '/sites/$siteId': typeof SitesSiteIdRoute
@@ -58,22 +74,48 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/client': typeof ClientRoute
+  '/guard': typeof GuardRoute
   '/sites': typeof SitesRouteWithChildren
   '/supervisor': typeof SupervisorRoute
   '/sites/$siteId': typeof SitesSiteIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/client' | '/sites' | '/supervisor' | '/sites/$siteId'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/client'
+    | '/guard'
+    | '/sites'
+    | '/supervisor'
+    | '/sites/$siteId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/client' | '/sites' | '/supervisor' | '/sites/$siteId'
-  id: '__root__' | '/' | '/client' | '/sites' | '/supervisor' | '/sites/$siteId'
+  to:
+    | '/'
+    | '/auth'
+    | '/client'
+    | '/guard'
+    | '/sites'
+    | '/supervisor'
+    | '/sites/$siteId'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/client'
+    | '/guard'
+    | '/sites'
+    | '/supervisor'
+    | '/sites/$siteId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   ClientRoute: typeof ClientRoute
+  GuardRoute: typeof GuardRoute
   SitesRoute: typeof SitesRouteWithChildren
   SupervisorRoute: typeof SupervisorRoute
 }
@@ -94,11 +136,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guard': {
+      id: '/guard'
+      path: '/guard'
+      fullPath: '/guard'
+      preLoaderRoute: typeof GuardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/client': {
       id: '/client'
       path: '/client'
       fullPath: '/client'
       preLoaderRoute: typeof ClientRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -130,7 +186,9 @@ const SitesRouteWithChildren = SitesRoute._addFileChildren(SitesRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   ClientRoute: ClientRoute,
+  GuardRoute: GuardRoute,
   SitesRoute: SitesRouteWithChildren,
   SupervisorRoute: SupervisorRoute,
 }

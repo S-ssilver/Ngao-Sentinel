@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Shield } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
 const navItems = [
@@ -10,17 +10,19 @@ const navItems = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-40 border-b border-border bg-sidebar/95 backdrop-blur">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <header className="sticky top-0 z-40 border-b border-accent/30 bg-primary/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <Shield className="h-5 w-5" />
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-accent-foreground">
+              <ShieldCheck className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <div className="text-sm font-semibold tracking-wide">SILVERLINE STATION</div>
-              <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                Security Operations
+              <div className="text-sm font-semibold tracking-wide text-primary-foreground">
+                ARN SECURITY
+              </div>
+              <div className="text-[11px] uppercase tracking-widest text-accent">
+                Operations Platform
               </div>
             </div>
           </Link>
@@ -29,10 +31,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 key={item.to}
                 to={item.to}
-                className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="rounded-md px-3 py-1.5 text-sm font-medium text-primary-foreground/70 transition-colors hover:bg-accent/20 hover:text-accent"
                 activeProps={{
                   className:
-                    "rounded-md px-3 py-1.5 text-sm font-medium bg-secondary text-foreground",
+                    "rounded-md px-3 py-1.5 text-sm font-medium bg-accent text-accent-foreground",
                 }}
                 activeOptions={{ exact: item.to === "/" }}
               >
@@ -42,7 +44,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+      <footer className="border-t border-border py-4 text-center text-xs text-muted-foreground">
+        Powered by Silverline Tech
+      </footer>
     </div>
   );
 }
