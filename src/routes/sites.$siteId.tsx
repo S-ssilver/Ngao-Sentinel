@@ -441,6 +441,7 @@ function SiteDetailsPage() {
 }
 
 function CctvGrid({ siteName, label }: { siteName: string; label: string }) {
+  void siteName;
   const cameras = [
     { name: "Front Gate", img: "https://images.unsplash.com/photo-1557183050-52a5470b3c98?w=800&q=60" },
     { name: "Parking Area", img: "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=800&q=60" },
