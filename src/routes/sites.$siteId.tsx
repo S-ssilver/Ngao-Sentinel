@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ShieldAlert, Video, Maximize2 } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Video, Maximize2, Users, AlertTriangle, TrendingUp } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -14,6 +14,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { ReportButtons } from "@/components/ReportButtons";
+import { MetricCard } from "@/components/MetricCard";
 import {
   IncidentDetailsDialog,
   type IncidentWithSite,
@@ -102,6 +103,24 @@ function SiteDetailsPage() {
   const attendance = attendanceQ.data ?? [];
   const incidents = incidentsQ.data ?? [];
 
+  // Stat cards
+  const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+  const guardsToday = attendance.filter(
+    (a) => a.status === "Present" && new Date(a.created_at) >= startOfToday,
+  ).length;
+  const openIncidentsCount = incidents.filter((i) => !i.resolved).length;
+  const attendanceRate = attendance.length === 0
+    ? 0
+    : Math.round((attendance.filter((a) => a.status === "Present").length / attendance.length) * 100);
+
+  // Weekly attendance summary
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const weekAtt = attendance.filter((a) => new Date(a.created_at) >= weekAgo);
+  const wkPresent = weekAtt.filter((a) => a.status === "Present").length;
+  const wkAbsent = weekAtt.filter((a) => a.status === "Absent").length;
+  const wkLate = weekAtt.filter((a) => a.status === "Late").length;
+  const wkRepl = weekAtt.filter((a) => a.status === "Replacement Required").length;
+
   // Aggregate incident types for the site chart
   const typeCounts = incidents.reduce<Record<string, number>>((acc, i) => {
     const key = i.incident_type === "Other" && i.other_type ? i.other_type : i.incident_type;
@@ -124,30 +143,38 @@ function SiteDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <Button variant="ghost" size="sm" onClick={() => router.history.back()} className="mb-2 -ml-2">
-            <ArrowLeft className="mr-1 h-4 w-4" /> Back
-          </Button>
-          <h1 className="text-2xl font-bold sm:text-3xl">
-            {site?.site_name ?? "Site"}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {site?.company_name ?? ""}
-            {site?.location_code ? ` · ${site.location_code}` : ""}
-          </p>
-          {site?.address ? (
-            <p className="text-sm text-muted-foreground">{site.address}</p>
-          ) : null}
-          <div className="mt-2">
-            <Badge variant={site?.active ? "default" : "secondary"}>
-              {site?.active ? "Active" : "Inactive"}
-            </Badge>
+      <div>
+        <Button variant="ghost" size="sm" onClick={() => router.history.back()} className="mb-2 -ml-2">
+          <ArrowLeft className="mr-1 h-4 w-4" /> Sites Management
+        </Button>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold sm:text-3xl">{site?.site_name ?? "Site"}</h1>
+            <p className="text-sm text-muted-foreground">{site?.company_name ?? ""}</p>
+            {site?.address ? (
+              <p className="text-sm text-muted-foreground">{site.address}</p>
+            ) : null}
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              {site?.location_code ? (
+                <Badge variant="outline" className="font-mono text-xs">
+                  Site Code: {site.location_code}
+                </Badge>
+              ) : null}
+              <Badge variant={site?.active ? "default" : "secondary"}>
+                {site?.active ? "Active" : "Inactive"}
+              </Badge>
+            </div>
           </div>
+          <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
+            ← Operations
+          </Link>
         </div>
-        <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
-          ← Operations
-        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <MetricCard label="Guards Today" value={guardsToday} icon={Users} tone="ok" />
+        <MetricCard label="Open Incidents" value={openIncidentsCount} icon={AlertTriangle} tone="danger" />
+        <MetricCard label="Attendance Rate" value={`${attendanceRate}%`} icon={TrendingUp} tone={attendanceRate >= 85 ? "ok" : attendanceRate >= 70 ? "warn" : "danger"} />
       </div>
 
       <Card>
@@ -161,8 +188,8 @@ function SiteDetailsPage() {
           <ReportButtons
             scope="site"
             siteId={siteId}
+            siteName={site?.site_name}
             companyName={site?.company_name}
-            title={`Site report — ${site?.site_name ?? ""}`}
           />
         </CardContent>
       </Card>
@@ -298,6 +325,12 @@ function SiteDetailsPage() {
             </TabsContent>
 
             <TabsContent value="attendance">
+              <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <SummaryPill label="Present" value={wkPresent} tone="ok" />
+                <SummaryPill label="Absent" value={wkAbsent} tone="danger" />
+                <SummaryPill label="Late" value={wkLate} tone="warn" />
+                <SummaryPill label="Replacement" value={wkRepl} tone="info" />
+              </div>
               <div className="overflow-x-auto rounded-lg border border-border">
                 <table className="w-full text-sm">
                   <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
@@ -306,8 +339,9 @@ function SiteDetailsPage() {
                       <th className="px-3 py-2 text-left">Guard Name</th>
                       <th className="px-3 py-2 text-left">Guard ID</th>
                       <th className="px-3 py-2 text-left">Shift</th>
+                      <th className="px-3 py-2 text-left">Check-in</th>
                       <th className="px-3 py-2 text-left">Status</th>
-                      <th className="px-3 py-2 text-left">Notes</th>
+                      <th className="px-3 py-2 text-left">Logged By</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -321,7 +355,7 @@ function SiteDetailsPage() {
                       attendance.map((a) => (
                         <tr key={a.id} className="border-t border-border">
                           <td className="px-3 py-2 text-muted-foreground">
-                            {new Date(a.created_at).toLocaleString()}
+                            {new Date(a.created_at).toLocaleDateString()}
                           </td>
                           <td className="px-3 py-2">{a.guard_name}</td>
                           <td className="px-3 py-2 text-muted-foreground font-mono text-xs">
@@ -330,6 +364,9 @@ function SiteDetailsPage() {
                           <td className="px-3 py-2">
                             <Badge variant="secondary">{a.shift_type}</Badge>
                           </td>
+                          <td className="px-3 py-2 text-muted-foreground tabular-nums">
+                            {new Date(a.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </td>
                           <td className="px-3 py-2">
                             <span
                               className={`inline-flex rounded-md border px-2 py-0.5 text-xs ${statusTone(a.status)}`}
@@ -337,8 +374,8 @@ function SiteDetailsPage() {
                               {a.status}
                             </span>
                           </td>
-                          <td className="px-3 py-2 text-muted-foreground max-w-[280px] truncate">
-                            {a.notes ?? "—"}
+                          <td className="px-3 py-2 text-muted-foreground">
+                            {a.reported_by ?? "—"}
                           </td>
                         </tr>
                       ))
@@ -359,6 +396,7 @@ function SiteDetailsPage() {
         incident={openIncident}
         open={!!openIncident}
         onOpenChange={(o) => !o && setOpenIncident(null)}
+        allowStatusUpdate
       />
 
       <Dialog open={!!openProtocol} onOpenChange={(o) => !o && setOpenProtocol(null)}>
