@@ -358,7 +358,7 @@ export function generateReportPDF(input: ReportInput) {
   const rateColor: [number, number, number] =
     stats.attendanceRate >= 85 ? [34, 139, 34] :
     stats.attendanceRate >= 70 ? [200, 150, 20] : [200, 40, 40];
-  doc.setTextColor(...rateColor);
+  doc.setTextColor(rateColor[0], rateColor[1], rateColor[2]);
   doc.text(`${stats.attendanceRate}%`, 40, y + 20);
   doc.setFontSize(9);
   doc.setTextColor(80);
@@ -366,7 +366,7 @@ export function generateReportPDF(input: ReportInput) {
   // Bar
   doc.setFillColor(230);
   doc.rect(160, y + 5, pageW - 200, 22, "F");
-  doc.setFillColor(...rateColor);
+  doc.setFillColor(rateColor[0], rateColor[1], rateColor[2]);
   doc.rect(160, y + 5, ((pageW - 200) * stats.attendanceRate) / 100, 22, "F");
   y += 60;
 
