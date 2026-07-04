@@ -440,6 +440,31 @@ function SiteDetailsPage() {
   );
 }
 
+function SummaryPill({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "ok" | "danger" | "warn" | "info";
+}) {
+  const toneCls =
+    tone === "ok"
+      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
+      : tone === "danger"
+      ? "border-destructive/40 bg-destructive/10 text-destructive"
+      : tone === "warn"
+      ? "border-amber-500/40 bg-amber-500/10 text-amber-600"
+      : "border-primary/40 bg-primary/10 text-primary";
+  return (
+    <div className={`rounded-md border px-3 py-2 ${toneCls}`}>
+      <div className="text-[10px] uppercase tracking-wider opacity-80">{label}</div>
+      <div className="text-lg font-bold tabular-nums">{value}</div>
+    </div>
+  );
+}
+
 function CctvGrid({ siteName, label }: { siteName: string; label: string }) {
   void siteName;
   const cameras = [
