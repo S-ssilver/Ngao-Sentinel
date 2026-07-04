@@ -50,6 +50,7 @@ import {
   type Role,
   type TeamUser,
 } from "@/lib/team-store";
+import { OpReportsSection } from "@/components/OpReportsSection";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -315,6 +316,8 @@ function OperationsDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      <OpReportsSection sites={sitesQAll.data ?? []} />
 
       <TeamManagement sites={sitesQAll.data ?? []} />
     </div>
