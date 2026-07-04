@@ -481,9 +481,10 @@ function CctvGrid({ siteName, label }: { siteName: string; label: string }) {
         ))}
       </div>
       <p className="text-xs text-muted-foreground">
-        Connect your existing CCTV system to enable live feeds — {siteName}. Contact
-        ARN Security for setup assistance.
+        Connect your existing CCTV system to enable live feeds. Contact ARN
+        Security for setup.
       </p>
+      {label ? null : null}
       <Dialog open={!!full} onOpenChange={(o) => !o && setFull(null)}>
         <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
