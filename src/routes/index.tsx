@@ -317,9 +317,9 @@ function OperationsDashboard() {
         </CardContent>
       </Card>
 
-      <TeamManagement sites={sitesQAll.data ?? []} />
-
       <OpReportsSection sites={sitesQAll.data ?? []} />
+
+      <TeamManagement sites={sitesQAll.data ?? []} />
     </div>
   );
 }
