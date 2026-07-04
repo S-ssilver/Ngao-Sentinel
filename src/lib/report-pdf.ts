@@ -364,7 +364,7 @@ export function generateReportPDF(input: ReportInput) {
   doc.setTextColor(80);
   doc.text("Attendance rate", 40, y + 34);
   // Bar
-  doc.setFillColor(230);
+  doc.setFillColor(230, 230, 230);
   doc.rect(160, y + 5, pageW - 200, 22, "F");
   doc.setFillColor(rateColor[0], rateColor[1], rateColor[2]);
   doc.rect(160, y + 5, ((pageW - 200) * stats.attendanceRate) / 100, 22, "F");
