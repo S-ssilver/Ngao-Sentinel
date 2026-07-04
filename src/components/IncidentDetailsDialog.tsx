@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -34,7 +33,6 @@ export function IncidentDetailsDialog({
   allowStatusUpdate?: boolean;
 }) {
   const qc = useQueryClient();
-  const [notes, setNotes] = useState("");
   const protocol =
     incident && showProtocol ? INCIDENT_PROTOCOLS[incident.incident_type] : null;
   const siteName = incident?.sites?.site_name ?? incident?.site_name ?? "Site";
@@ -186,6 +184,3 @@ export function IncidentDetailsDialog({
     </Dialog>
   );
 }
-
-// keep unused import guard from tree-shaking optimisers
-void notes;
