@@ -62,7 +62,7 @@ function AuthPage() {
                 ? "/client"
                 : user.role === "Supervisor"
                   ? "/supervisor"
-                  : "/";
+                  : "/ops";
           navigate({ to: dest });
         }
       } else if (req.status === "Denied") {

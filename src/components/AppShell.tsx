@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
 const navItems = [
-  { to: "/", label: "Operations" },
+  { to: "/ops", label: "Operations" },
   { to: "/client", label: "Client Portal" },
   { to: "/supervisor", label: "Supervisor" },
 ] as const;
@@ -13,7 +13,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-accent/30 bg-primary/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <Link to="/" className="flex items-center gap-2 shrink-0">
+          <Link to="/ops" className="flex items-center gap-2 shrink-0">
             <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-accent-foreground">
               <ShieldCheck className="h-5 w-5" />
             </span>
@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   className:
                     "rounded-md px-3 py-1.5 text-sm font-medium bg-accent text-accent-foreground",
                 }}
-                activeOptions={{ exact: item.to === "/" }}
+                activeOptions={{ exact: false }}
               >
                 {item.label}
               </Link>

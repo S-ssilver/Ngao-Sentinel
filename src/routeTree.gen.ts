@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SupervisorRouteImport } from './routes/supervisor'
 import { Route as SitesRouteImport } from './routes/sites'
+import { Route as OpsRouteImport } from './routes/ops'
 import { Route as GuardRouteImport } from './routes/guard'
 import { Route as ClientRouteImport } from './routes/client'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -25,6 +26,11 @@ const SupervisorRoute = SupervisorRouteImport.update({
 const SitesRoute = SitesRouteImport.update({
   id: '/sites',
   path: '/sites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpsRoute = OpsRouteImport.update({
+  id: '/ops',
+  path: '/ops',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuardRoute = GuardRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/client': typeof ClientRoute
   '/guard': typeof GuardRoute
+  '/ops': typeof OpsRoute
   '/sites': typeof SitesRouteWithChildren
   '/supervisor': typeof SupervisorRoute
   '/sites/$siteId': typeof SitesSiteIdRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/client': typeof ClientRoute
   '/guard': typeof GuardRoute
+  '/ops': typeof OpsRoute
   '/sites': typeof SitesRouteWithChildren
   '/supervisor': typeof SupervisorRoute
   '/sites/$siteId': typeof SitesSiteIdRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/client': typeof ClientRoute
   '/guard': typeof GuardRoute
+  '/ops': typeof OpsRoute
   '/sites': typeof SitesRouteWithChildren
   '/supervisor': typeof SupervisorRoute
   '/sites/$siteId': typeof SitesSiteIdRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/client'
     | '/guard'
+    | '/ops'
     | '/sites'
     | '/supervisor'
     | '/sites/$siteId'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/client'
     | '/guard'
+    | '/ops'
     | '/sites'
     | '/supervisor'
     | '/sites/$siteId'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/client'
     | '/guard'
+    | '/ops'
     | '/sites'
     | '/supervisor'
     | '/sites/$siteId'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ClientRoute: typeof ClientRoute
   GuardRoute: typeof GuardRoute
+  OpsRoute: typeof OpsRoute
   SitesRoute: typeof SitesRouteWithChildren
   SupervisorRoute: typeof SupervisorRoute
 }
@@ -134,6 +147,13 @@ declare module '@tanstack/react-router' {
       path: '/sites'
       fullPath: '/sites'
       preLoaderRoute: typeof SitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ops': {
+      id: '/ops'
+      path: '/ops'
+      fullPath: '/ops'
+      preLoaderRoute: typeof OpsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guard': {
@@ -189,6 +209,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ClientRoute: ClientRoute,
   GuardRoute: GuardRoute,
+  OpsRoute: OpsRoute,
   SitesRoute: SitesRouteWithChildren,
   SupervisorRoute: SupervisorRoute,
 }

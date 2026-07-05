@@ -1,579 +1,406 @@
-import { useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Bar,
-  BarChart,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { AlertTriangle, MapPin, UserMinus, UserPlus, Check, X, Trash2 } from "lucide-react";
+  ShieldCheck,
+  FileText,
+  Phone,
+  HelpCircle,
+  BarChart3,
+  BookOpen,
+  UserCheck,
+  Camera,
+} from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
-import { MetricCard } from "@/components/MetricCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  INCIDENT_TYPES,
-  SEVERITIES,
-  type AttendanceLog,
-  type IncidentLog,
-  type Site,
-} from "@/lib/silverline";
-import {
-  removeUser,
-  updateRequest,
-  upsertUser,
-  useTeamStore,
-  type Role,
-  type TeamUser,
-} from "@/lib/team-store";
-import { OpReportsSection } from "@/components/OpReportsSection";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Operations Dashboard — ARN Security" },
-      { name: "description", content: "Live operations metrics and incident trends." },
+      { title: "ARN Security — Operations Platform" },
+      {
+        name: "description",
+        content:
+          "Real-time security intelligence for every site you protect. Incident management, proof of service reports, SOP guidance and digital guard attendance.",
+      },
+      { property: "og:title", content: "ARN Security — Operations Platform" },
+      {
+        property: "og:description",
+        content:
+          "Real-time security intelligence for every site you protect.",
+      },
     ],
   }),
-  component: OperationsDashboard,
+  component: LandingPage,
 });
 
-const SEVERITY_COLORS: Record<string, string> = {
-  Low: "oklch(0.72 0.16 160)",
-  Medium: "oklch(0.78 0.16 85)",
-  High: "oklch(0.62 0.22 25)",
-};
-
-function OperationsDashboard() {
-  const sinceISO = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const navigate = useNavigate();
-  const todayISO = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-
-  const sitesQ = useQuery({
-    queryKey: ["sites", "active-count"],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("sites")
-        .select("*", { count: "exact", head: true })
-        .eq("active", true);
-      if (error) throw error;
-      return count ?? 0;
-    },
-  });
-
-  const openIncQ = useQuery({
-    queryKey: ["incidents", "open-count"],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("incident_logs")
-        .select("*", { count: "exact", head: true })
-        .eq("resolved", false);
-      if (error) throw error;
-      return count ?? 0;
-    },
-  });
-
-  const replQ = useQuery({
-    queryKey: ["attendance", "replacement-count"],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("attendance_logs")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "Replacement Required");
-      if (error) throw error;
-      return count ?? 0;
-    },
-  });
-
-  const incQ = useQuery({
-    queryKey: ["incidents", "30d"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("incident_logs")
-        .select("incident_type,severity,created_at")
-        .gte("created_at", sinceISO);
-      if (error) throw error;
-      return data as Pick<IncidentLog, "incident_type" | "severity" | "created_at">[];
-    },
-  });
-
-  const sitesQAll = useQuery({
-    queryKey: ["sites", "overview"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("sites").select("*").order("site_name");
-      if (error) throw error;
-      return data as Site[];
-    },
-  });
-
-  const todayAttQ = useQuery({
-    queryKey: ["attendance", "today"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("attendance_logs")
-        .select("site_id,status,created_at")
-        .gte("created_at", todayISO);
-      if (error) throw error;
-      return data as Pick<AttendanceLog, "site_id" | "status" | "created_at">[];
-    },
-  });
-
-  const openIncBySiteQ = useQuery({
-    queryKey: ["incidents", "open-by-site"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("incident_logs")
-        .select("site_id")
-        .eq("resolved", false);
-      if (error) throw error;
-      return data as { site_id: string }[];
-    },
-  });
-
-  const byType = INCIDENT_TYPES.map((t) => ({
-    type: t,
-    count: incQ.data?.filter((i) => i.incident_type === t).length ?? 0,
-  }));
-  const bySeverity = SEVERITIES.map((s) => ({
-    name: s,
-    value: incQ.data?.filter((i) => i.severity === s).length ?? 0,
-  })).filter((d) => d.value > 0);
-
+function LandingPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">Operations Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Live security operations overview.</p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <MetricCard label="Active Sites" value={sitesQ.data ?? 0} icon={MapPin} tone="ok" />
-        <MetricCard label="Open Incidents" value={openIncQ.data ?? 0} icon={AlertTriangle} tone="danger" />
-        <MetricCard
-          label="Replacement Required"
-          value={replQ.data ?? 0}
-          icon={UserMinus}
-          tone="warn"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Incidents by Type (Last 30 days)</CardTitle>
-          </CardHeader>
-          <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={byType} margin={{ top: 8, right: 8, bottom: 24, left: 0 }}>
-                <XAxis
-                  dataKey="type"
-                  stroke="oklch(0.68 0.02 250)"
-                  fontSize={10}
-                  angle={-25}
-                  textAnchor="end"
-                  interval={0}
-                  height={60}
-                />
-                <YAxis stroke="oklch(0.68 0.02 250)" fontSize={11} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{
-                    background: "oklch(0.21 0.014 250)",
-                    border: "1px solid oklch(0.3 0.015 250)",
-                    borderRadius: 8,
-                    color: "oklch(0.96 0.005 250)",
-                  }}
-                />
-                <Bar dataKey="count" fill="oklch(0.78 0.13 220)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Incidents by Severity (Last 30 days)</CardTitle>
-          </CardHeader>
-          <CardContent className="h-72">
-            {bySeverity.length === 0 ? (
-              <div className="grid h-full place-items-center text-sm text-muted-foreground">
-                No incidents in the last 30 days.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={bySeverity}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={50}
-                    outerRadius={90}
-                    paddingAngle={2}
-                  >
-                    {bySeverity.map((entry) => (
-                      <Cell key={entry.name} fill={SEVERITY_COLORS[entry.name]} stroke="oklch(0.21 0.014 250)" />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: "oklch(0.21 0.014 250)",
-                      border: "1px solid oklch(0.3 0.015 250)",
-                      borderRadius: 8,
-                      color: "oklch(0.96 0.005 250)",
-                    }}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Sites Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2 text-left">Site Name</th>
-                  <th className="px-3 py-2 text-left">Company</th>
-                  <th className="px-3 py-2 text-left">Status</th>
-                  <th className="px-3 py-2 text-right">Guards Today</th>
-                  <th className="px-3 py-2 text-right">Open Incidents</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(sitesQAll.data ?? []).length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
-                      No sites yet.
-                    </td>
-                  </tr>
-                ) : (
-                  (sitesQAll.data ?? []).map((s) => {
-                    const guardsToday = (todayAttQ.data ?? []).filter(
-                      (a) => a.site_id === s.id && a.status === "Present",
-                    ).length;
-                    const openInc = (openIncBySiteQ.data ?? []).filter(
-                      (i) => i.site_id === s.id,
-                    ).length;
-                    return (
-                      <tr
-                        key={s.id}
-                        className="cursor-pointer border-t border-border transition hover:bg-muted/40"
-                        onClick={() =>
-                          navigate({ to: "/sites/$siteId", params: { siteId: s.id } })
-                        }
-                      >
-                        <td className="px-3 py-2 font-medium text-primary">{s.site_name}</td>
-                        <td className="px-3 py-2 text-muted-foreground">{s.company_name}</td>
-                        <td className="px-3 py-2">
-                          <Badge variant={s.active ? "default" : "secondary"}>
-                            {s.active ? "Active" : "Inactive"}
-                          </Badge>
-                        </td>
-                        <td className="px-3 py-2 text-right tabular-nums">{guardsToday}</td>
-                        <td className="px-3 py-2 text-right tabular-nums">
-                          {openInc > 0 ? (
-                            <span className="font-semibold text-destructive">{openInc}</span>
-                          ) : (
-                            <span className="text-muted-foreground">0</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <OpReportsSection sites={sitesQAll.data ?? []} />
-
-      <TeamManagement sites={sitesQAll.data ?? []} />
+    <div className="min-h-screen bg-background text-foreground">
+      <TopBar />
+      <Hero />
+      <ProblemSection />
+      <DeliverySection />
+      <SentinelCamTeaser />
+      <RolePreviews />
+      <RequestAccessForm />
+      <SiteFooter />
     </div>
   );
 }
 
-const ROLE_OPTIONS: Role[] = ["Operations Manager", "Supervisor", "Client", "Guard (Field)"];
-
-function TeamManagement({ sites }: { sites: Site[] }) {
-  const { users, requests } = useTeamStore();
-  const [addOpen, setAddOpen] = useState(false);
-  const [editing, setEditing] = useState<TeamUser | null>(null);
-  const [invited, setInvited] = useState<TeamUser | null>(null);
-
-  const pending = useMemo(
-    () => requests.filter((r) => r.status === "Pending"),
-    [requests],
-  );
-
-  function siteNames(ids: string[]) {
-    if (!ids.length) return "All sites";
-    return ids
-      .map((id) => sites.find((s) => s.id === id)?.site_name ?? "—")
-      .join(", ");
-  }
-
+function TopBar() {
   return (
-    <>
-      {pending.length > 0 ? (
-        <Card className="border-accent/50">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">
-              Access Requests
-              <Badge className="ml-2 bg-accent text-accent-foreground">{pending.length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {pending.map((r) => (
-                <div
-                  key={r.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3 text-sm"
-                >
-                  <div>
-                    <div className="font-medium">{r.name} <span className="text-muted-foreground">· {r.role}</span></div>
-                    <div className="text-xs text-muted-foreground">
-                      {r.email} · Requested {new Date(r.requestedAt).toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90"
-                      onClick={() => updateRequest(r.id, "Approved")}
-                    >
-                      <Check className="mr-1 h-4 w-4" /> Approve
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => updateRequest(r.id, "Denied")}>
-                      <X className="mr-1 h-4 w-4" /> Deny
-                    </Button>
-                  </div>
-                </div>
-              ))}
+    <header className="sticky top-0 z-40 border-b border-accent/30 bg-primary/95 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+        <div className="flex items-center gap-2">
+          <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-accent-foreground">
+            <ShieldCheck className="h-5 w-5" />
+          </span>
+          <div>
+            <div className="text-sm font-semibold tracking-wide text-primary-foreground">
+              ARN SECURITY
             </div>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Team Management</CardTitle>
-          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setAddOpen(true)}>
-            <UserPlus className="mr-1 h-4 w-4" /> Add User
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead className="bg-secondary/50 text-xs uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2 text-left">Name</th>
-                  <th className="px-3 py-2 text-left">Email</th>
-                  <th className="px-3 py-2 text-left">Role</th>
-                  <th className="px-3 py-2 text-left">Assigned Site(s)</th>
-                  <th className="px-3 py-2 text-left">Status</th>
-                  <th className="px-3 py-2 text-left">Last Login</th>
-                  <th className="px-3 py-2 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.length === 0 ? (
-                  <tr><td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">No users yet.</td></tr>
-                ) : users.map((u) => (
-                  <tr key={u.id} className="border-t border-border">
-                    <td className="px-3 py-2 font-medium">{u.name}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{u.email}</td>
-                    <td className="px-3 py-2">{u.role}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{siteNames(u.siteIds)}</td>
-                    <td className="px-3 py-2">
-                      <Badge
-                        variant={
-                          u.status === "Active" ? "default"
-                          : u.status === "Suspended" ? "destructive"
-                          : "secondary"
-                        }
-                      >
-                        {u.status}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-2 text-muted-foreground">
-                      {u.lastLogin ? new Date(u.lastLogin).toLocaleString() : "—"}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex justify-end gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => setEditing(u)}>Edit</Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() =>
-                            upsertUser({
-                              ...u,
-                              status: u.status === "Suspended" ? "Active" : "Suspended",
-                            })
-                          }
-                        >
-                          {u.status === "Suspended" ? "Reactivate" : "Suspend"}
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => removeUser(u.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="text-[11px] uppercase tracking-widest text-accent">
+              Operations Platform
+            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <UserFormDialog
-        open={addOpen || !!editing}
-        user={editing}
-        sites={sites}
-        onClose={() => { setAddOpen(false); setEditing(null); }}
-        onSaved={(u, isNew) => { if (isNew) setInvited(u); }}
-      />
-
-      <Dialog open={!!invited} onOpenChange={(o) => !o && setInvited(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Invitation sent</DialogTitle>
-          </DialogHeader>
-          <div className="rounded-md border border-border bg-muted/30 p-4 text-sm">
-            <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Simulated email</div>
-            <div className="font-medium">To: {invited?.email}</div>
-            <div className="mt-2">Subject: You've been invited to ARN Security</div>
-            <p className="mt-3 text-muted-foreground">
-              Hi {invited?.name}, your Operations Manager has invited you to join
-              the ARN Security Operations Platform as <b>{invited?.role}</b>. Click
-              the link below to set your password and sign in.
-            </p>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Powered by Silverline Tech
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        </div>
+        <Link
+          to="/auth"
+          className="inline-flex h-9 items-center rounded-md bg-accent px-4 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
+        >
+          Sign In
+        </Link>
+      </div>
+    </header>
   );
 }
 
-function UserFormDialog({
-  open, user, sites, onClose, onSaved,
-}: {
-  open: boolean;
-  user: TeamUser | null;
-  sites: Site[];
-  onClose: () => void;
-  onSaved: (u: TeamUser, isNew: boolean) => void;
-}) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<Role>("Supervisor");
-  const [siteIds, setSiteIds] = useState<string[]>([]);
+function Hero() {
+  return (
+    <section className="border-b border-accent/20 bg-primary text-primary-foreground">
+      <div className="mx-auto max-w-5xl px-4 py-20 text-center sm:px-6 sm:py-28">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
+          ARN Security —{" "}
+          <span className="text-accent">Operations Platform</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-base text-primary-foreground/80 sm:text-lg">
+          Real-time security intelligence for every site you protect.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link
+            to="/auth"
+            className="inline-flex h-11 items-center rounded-md bg-accent px-6 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
+          >
+            Sign In to Dashboard
+          </Link>
+          <a
+            href="#request-access"
+            className="inline-flex h-11 items-center rounded-md border border-accent px-6 text-sm font-semibold text-accent transition hover:bg-accent hover:text-accent-foreground"
+          >
+            Request Access
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-  // reset on open
-  useMemo(() => {
-    if (open) {
-      setName(user?.name ?? "");
-      setEmail(user?.email ?? "");
-      setRole(user?.role ?? "Supervisor");
-      setSiteIds(user?.siteIds ?? []);
-    }
-  }, [open, user]);
+function ProblemSection() {
+  const items = [
+    {
+      icon: FileText,
+      text: "Still using occurrence books? Incidents get lost, clients stay in the dark.",
+    },
+    {
+      icon: Phone,
+      text: "Constant calls to the office? Your ops team shouldn't need to chase updates by phone.",
+    },
+    {
+      icon: HelpCircle,
+      text: "Can't prove your team responded? One incident without documentation is a liability.",
+    },
+  ];
+  return (
+    <section className="border-b border-border py-16 sm:py-20">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 className="mb-10 text-center text-2xl font-bold sm:text-3xl">
+          The Problem
+        </h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          {items.map(({ icon: Icon, text }, i) => (
+            <Card key={i} className="border-border/70">
+              <CardContent className="flex flex-col items-start gap-3 p-6">
+                <span className="grid h-11 w-11 place-items-center rounded-lg bg-accent/15 text-accent">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <p className="text-sm leading-relaxed">{text}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-  function toggleSite(id: string) {
-    setSiteIds((prev) => prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]);
-  }
+function DeliverySection() {
+  const rows = [
+    {
+      icon: ShieldCheck,
+      heading: "Real-time Incident Management",
+      text: "Supervisors log incidents in seconds. Operations managers see everything across every site — no phone calls required.",
+    },
+    {
+      icon: BarChart3,
+      heading: "Proof of Service Reports",
+      text: "Automated weekly and monthly PDF reports, branded to your company. Give your clients the visibility that justifies your contract.",
+    },
+    {
+      icon: BookOpen,
+      heading: "Emergency Guidance Built In",
+      text: "When a supervisor faces an incident and the office can't be reached, the platform shows your approved response protocol immediately — the right action, every time.",
+    },
+    {
+      icon: UserCheck,
+      heading: "Guard Attendance, Digitised",
+      text: "Track every guard across every shift. Know instantly who is present, absent, late, or needs replacement — before your client calls to ask.",
+    },
+  ];
+  return (
+    <section className="border-b border-border bg-card/40 py-16 sm:py-20">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 className="mb-12 text-center text-2xl font-bold sm:text-3xl">
+          What Silverline Delivers
+        </h2>
+        <div className="space-y-12">
+          {rows.map(({ icon: Icon, heading, text }, i) => {
+            const iconLeft = i % 2 === 0;
+            return (
+              <div
+                key={heading}
+                className="grid items-center gap-6 md:grid-cols-2 md:gap-12"
+              >
+                <div
+                  className={`flex justify-center ${iconLeft ? "md:order-1" : "md:order-2"}`}
+                >
+                  <span className="grid h-24 w-24 place-items-center rounded-2xl bg-accent/15 text-accent">
+                    <Icon className="h-12 w-12" />
+                  </span>
+                </div>
+                <div className={iconLeft ? "md:order-2" : "md:order-1"}>
+                  <h3 className="text-xl font-semibold text-accent">
+                    {heading}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-foreground/85">
+                    {text}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-  function save() {
-    const isNew = !user;
-    const record: TeamUser = {
-      id: user?.id ?? crypto.randomUUID(),
-      name, email, role, siteIds,
-      status: user?.status ?? "Pending",
-      lastLogin: user?.lastLogin ?? null,
-    };
-    upsertUser(record);
-    onSaved(record, isNew);
-    onClose();
+function SentinelCamTeaser() {
+  const [joined, setJoined] = useState(false);
+  return (
+    <section
+      id="sentinelcam"
+      className="border-b border-accent/20 bg-primary py-20 text-primary-foreground"
+    >
+      <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
+        <div className="text-[11px] font-semibold uppercase tracking-widest text-accent">
+          Coming Soon
+        </div>
+        <div className="mt-3 flex justify-center">
+          <span className="grid h-14 w-14 place-items-center rounded-xl bg-accent/15 text-accent">
+            <Camera className="h-7 w-7" />
+          </span>
+        </div>
+        <h2 className="mt-4 text-2xl font-bold sm:text-3xl">
+          SentinelCam — AI-Powered Assault Detection
+        </h2>
+        <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-primary-foreground/80 sm:text-base">
+          The next phase of ARN's security intelligence platform. Offline
+          edge-AI body cameras that detect threats in real time — no cellular
+          data required. Built for Africa.
+        </p>
+        <div className="mt-6">
+          <Button
+            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            onClick={() => {
+              setJoined(true);
+              toast.success("Thank you — we'll be in touch");
+            }}
+          >
+            {joined ? "You're on the list" : "Join the Waitlist"}
+          </Button>
+        </div>
+        <p className="mt-4 text-xs text-primary-foreground/60">
+          SentinelCam is currently in development. Powered by Silverline Tech.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function RolePreviews() {
+  const roles = [
+    {
+      title: "For Operations Managers",
+      text: "Full visibility across all sites. Real-time alerts. Intelligence reports that flag problems before they escalate.",
+    },
+    {
+      title: "For Supervisors",
+      text: "Log incidents in under 60 seconds. Get immediate SOP guidance. No paperwork, no delays.",
+    },
+    {
+      title: "For Your Clients",
+      text: "A professional dashboard showing exactly what your security team is doing — building trust and justifying your contract every month.",
+    },
+  ];
+  return (
+    <section className="border-b border-border py-16 sm:py-20">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 className="mb-10 text-center text-2xl font-bold sm:text-3xl">
+          Built for Every Role
+        </h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          {roles.map((r) => (
+            <Card key={r.title} className="border-accent/30">
+              <CardContent className="p-6">
+                <div className="text-sm font-semibold text-accent">
+                  {r.title}
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-foreground/85">
+                  {r.text}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RequestAccessForm() {
+  const [submitted, setSubmitted] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitted(true);
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{user ? "Edit user" : "Add user"}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div><Label>Full Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-          <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-          <div>
-            <Label>Role</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as Role)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {ROLE_OPTIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Assigned Site(s)</Label>
-            <div className="mt-1 max-h-40 overflow-y-auto rounded-md border border-border p-2 text-sm">
-              {sites.length === 0 ? (
-                <div className="text-muted-foreground">No sites available.</div>
-              ) : sites.map((s) => (
-                <label key={s.id} className="flex items-center gap-2 py-1">
-                  <input
-                    type="checkbox"
-                    checked={siteIds.includes(s.id)}
-                    onChange={() => toggleSite(s.id)}
+    <section
+      id="request-access"
+      className="border-b border-border bg-card/40 py-16 sm:py-20"
+    >
+      <div className="mx-auto max-w-2xl px-4 sm:px-6">
+        <h2 className="text-center text-2xl font-bold sm:text-3xl">
+          Request Access
+        </h2>
+        <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">
+          We onboard security companies directly. Fill in your details and our
+          team will be in touch.
+        </p>
+        <Card className="mt-8">
+          <CardContent className="p-6">
+            {submitted ? (
+              <div className="rounded-md border border-accent/40 bg-accent/10 p-6 text-center">
+                <ShieldCheck className="mx-auto h-8 w-8 text-accent" />
+                <p className="mt-3 text-sm font-medium">
+                  Thank you — ARN Security will be in touch within 24 hours.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field id="company" label="Company Name" required />
+                  <Field id="name" label="Your Name" required />
+                  <Field id="role" label="Your Role" required />
+                  <Field id="email" label="Email Address" type="email" required />
+                  <Field id="phone" label="Phone Number" required />
+                  <Field
+                    id="sites"
+                    label="Number of Sites"
+                    type="number"
+                    required
                   />
-                  {s.site_name}
-                </label>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={save}>
-              {user ? "Save" : "Send invitation"}
-            </Button>
-          </div>
+                </div>
+                <div>
+                  <Label htmlFor="message">Message (optional)</Label>
+                  <Textarea id="message" name="message" rows={4} />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Submit Request
+                </Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </section>
+  );
+}
+
+function Field({
+  id,
+  label,
+  type = "text",
+  required,
+}: {
+  id: string;
+  label: string;
+  type?: string;
+  required?: boolean;
+}) {
+  return (
+    <div>
+      <Label htmlFor={id}>{label}</Label>
+      <Input id={id} name={id} type={type} required={required} />
+    </div>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="bg-primary py-8 text-primary-foreground">
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-xs sm:flex-row sm:px-6">
+        <div className="flex items-center gap-2">
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-accent text-accent-foreground">
+            <ShieldCheck className="h-4 w-4" />
+          </span>
+          <span>© 2026 ARN Security Operations Platform</span>
         </div>
-      </DialogContent>
-    </Dialog>
+        <nav className="flex gap-4 text-primary-foreground/80">
+          <a href="#" className="hover:text-accent">
+            Features
+          </a>
+          <Link to="/auth" className="hover:text-accent">
+            Sign In
+          </Link>
+          <a href="#request-access" className="hover:text-accent">
+            Request Access
+          </a>
+        </nav>
+        <div className="text-primary-foreground/70">
+          Powered by Silverline Tech
+        </div>
+      </div>
+    </footer>
   );
 }
