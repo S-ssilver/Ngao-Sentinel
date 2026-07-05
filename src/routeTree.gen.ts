@@ -15,6 +15,7 @@ import { Route as OpsRouteImport } from './routes/ops'
 import { Route as GuardRouteImport } from './routes/guard'
 import { Route as ClientRouteImport } from './routes/client'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as SitesSiteIdRouteImport } from './routes/sites.$siteId'
 
 const SupervisorRoute = SupervisorRouteImport.update({
@@ -47,6 +48,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitesSiteIdRoute = SitesSiteIdRouteImport.update({
   id: '/$siteId',
   path: '/$siteId',
@@ -54,6 +60,7 @@ const SitesSiteIdRoute = SitesSiteIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/client': typeof ClientRoute
   '/guard': typeof GuardRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/sites/$siteId': typeof SitesSiteIdRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/client': typeof ClientRoute
   '/guard': typeof GuardRoute
@@ -73,6 +81,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/client': typeof ClientRoute
   '/guard': typeof GuardRoute
@@ -84,6 +93,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/auth'
     | '/client'
     | '/guard'
@@ -93,6 +103,7 @@ export interface FileRouteTypes {
     | '/sites/$siteId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/auth'
     | '/client'
     | '/guard'
@@ -102,6 +113,7 @@ export interface FileRouteTypes {
     | '/sites/$siteId'
   id:
     | '__root__'
+    | '/'
     | '/auth'
     | '/client'
     | '/guard'
@@ -112,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   ClientRoute: typeof ClientRoute
   GuardRoute: typeof GuardRoute
@@ -164,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sites/$siteId': {
       id: '/sites/$siteId'
       path: '/$siteId'
@@ -185,6 +205,7 @@ const SitesRouteChildren: SitesRouteChildren = {
 const SitesRouteWithChildren = SitesRoute._addFileChildren(SitesRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   ClientRoute: ClientRoute,
   GuardRoute: GuardRoute,
@@ -195,3 +216,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
