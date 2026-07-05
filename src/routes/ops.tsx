@@ -52,7 +52,7 @@ import {
 } from "@/lib/team-store";
 import { OpReportsSection } from "@/components/OpReportsSection";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/ops")({
   head: () => ({
     meta: [
       { title: "Operations Dashboard — ARN Security" },
