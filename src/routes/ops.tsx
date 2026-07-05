@@ -320,11 +320,44 @@ function OperationsDashboard() {
       <OpReportsSection sites={sitesQAll.data ?? []} />
 
       <TeamManagement sites={sitesQAll.data ?? []} />
+
+      <SentinelCamTeaser />
     </div>
   );
 }
 
 const ROLE_OPTIONS: Role[] = ["Operations Manager", "Supervisor", "Client", "Guard (Field)"];
+
+function SentinelCamTeaser() {
+  return (
+    <Card className="border-accent/60 bg-primary/40">
+      <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-accent">
+            Coming Soon
+          </div>
+          <div className="text-base font-semibold text-primary-foreground">
+            SentinelCam Integration
+          </div>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            AI-powered assault detection body cameras, designed for offline
+            deployment. SentinelCam will integrate directly with this dashboard —
+            automatically logging incidents, attaching video evidence, and
+            sending real-time alerts when a threat is detected.
+          </p>
+        </div>
+        <a
+          href="/#sentinelcam"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-8 shrink-0 items-center justify-center rounded-md border border-accent/60 px-3 text-xs font-medium text-accent transition hover:bg-accent hover:text-accent-foreground"
+        >
+          Learn More
+        </a>
+      </CardContent>
+    </Card>
+  );
+}
 
 function TeamManagement({ sites }: { sites: Site[] }) {
   const { users, requests } = useTeamStore();
