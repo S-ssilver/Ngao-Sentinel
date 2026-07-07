@@ -13,7 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { AlertTriangle, MapPin, UserMinus, UserPlus, Check, X, Trash2 } from "lucide-react";
+import { AlertTriangle, MapPin, UserMinus, UserPlus, Trash2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { MetricCard } from "@/components/MetricCard";
@@ -44,7 +44,6 @@ import {
 } from "@/lib/silverline";
 import {
   removeUser,
-  updateRequest,
   upsertUser,
   useTeamStore,
   type Role,
@@ -360,15 +359,10 @@ function SentinelCamTeaser() {
 }
 
 function TeamManagement({ sites }: { sites: Site[] }) {
-  const { users, requests } = useTeamStore();
+  const { users } = useTeamStore();
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<TeamUser | null>(null);
   const [invited, setInvited] = useState<TeamUser | null>(null);
-
-  const pending = useMemo(
-    () => requests.filter((r) => r.status === "Pending"),
-    [requests],
-  );
 
   function siteNames(ids: string[]) {
     if (!ids.length) return "All sites";
@@ -379,46 +373,6 @@ function TeamManagement({ sites }: { sites: Site[] }) {
 
   return (
     <>
-      {pending.length > 0 ? (
-        <Card className="border-accent/50">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">
-              Access Requests
-              <Badge className="ml-2 bg-accent text-accent-foreground">{pending.length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {pending.map((r) => (
-                <div
-                  key={r.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3 text-sm"
-                >
-                  <div>
-                    <div className="font-medium">{r.name} <span className="text-muted-foreground">· {r.role}</span></div>
-                    <div className="text-xs text-muted-foreground">
-                      {r.email} · Requested {new Date(r.requestedAt).toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90"
-                      onClick={() => updateRequest(r.id, "Approved")}
-                    >
-                      <Check className="mr-1 h-4 w-4" /> Approve
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => updateRequest(r.id, "Denied")}>
-                      <X className="mr-1 h-4 w-4" /> Deny
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
-
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Team Management</CardTitle>
