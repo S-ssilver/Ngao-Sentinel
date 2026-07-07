@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "@/components/AppShell";
 import { Toaster } from "@/components/ui/sonner";
+import { ParticleField } from "@/components/ParticleField";
 
 function NotFoundComponent() {
   return (
@@ -132,7 +133,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {bare ? <Outlet /> : <AppShell><Outlet /></AppShell>}
+      <ParticleField />
+      <div className="relative z-10">
+        {bare ? <Outlet /> : <AppShell><Outlet /></AppShell>}
+      </div>
       <Toaster />
     </QueryClientProvider>
   );
