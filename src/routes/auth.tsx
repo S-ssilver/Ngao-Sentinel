@@ -1,19 +1,13 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, Loader2 } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  addRequest,
-  getRequests,
-  getUsers,
-  setSession,
-  upsertUser,
-} from "@/lib/team-store";
+import { getSession, signInWithPassword } from "@/lib/team-store";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -30,73 +24,32 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
-  const [pendingId, setPendingId] = useState<string | null>(null);
-  const [denied, setDenied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Poll access request status while pending
+  // If already signed in, jump straight to the right dashboard.
   useEffect(() => {
-    if (!pendingId) return;
-    const t = setInterval(() => {
-      const req = getRequests().find((r) => r.id === pendingId);
-      if (!req) return;
-      if (req.status === "Approved") {
-        const user =
-          getUsers().find((u) => u.email.toLowerCase() === req.email.toLowerCase()) ||
-          null;
-        const now = new Date().toISOString();
-        if (user) {
-          upsertUser({ ...user, status: "Active", lastLogin: now });
-          setSession({
-            userId: user.id,
-            role: user.role,
-            name: user.name,
-            email: user.email,
-            siteIds: user.siteIds,
-            remember,
-          });
-          setPendingId(null);
-          const dest =
-            user.role === "Guard (Field)"
-              ? "/guard"
-              : user.role === "Client"
-                ? "/client"
-                : user.role === "Supervisor"
-                  ? "/supervisor"
-                  : "/ops";
-          navigate({ to: dest });
-        }
-      } else if (req.status === "Denied") {
-        setPendingId(null);
-        setDenied(true);
-      }
-    }, 800);
-    return () => clearInterval(t);
-  }, [pendingId, remember, navigate]);
+    const s = getSession();
+    if (!s) return;
+    const dest =
+      s.role === "Client"
+        ? "/client"
+        : s.role === "Supervisor"
+          ? "/supervisor"
+          : s.role === "Guard (Field)"
+            ? "/guard"
+            : "/ops";
+    navigate({ to: dest });
+  }, [navigate]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setDenied(false);
-    const users = getUsers();
-    const user = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    const role = user?.role ?? "Supervisor";
-    const req = addRequest({ name: user?.name ?? email.split("@")[0], email, role });
-    setPendingId(req.id);
-  }
-
-  if (pendingId) {
-    return (
-      <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-16 text-center">
-        <Loader2 className="h-10 w-10 animate-spin text-accent" />
-        <h1 className="text-xl font-semibold">Pending Approval</h1>
-        <p className="text-sm text-muted-foreground">
-          Your login request has been sent to your Operations Manager for
-          verification. Please wait.
-        </p>
-        <Button variant="ghost" size="sm" onClick={() => setPendingId(null)}>
-          Cancel
-        </Button>
-      </div>
-    );
+    const acc = signInWithPassword(email, password, remember);
+    if (!acc) {
+      setError("Incorrect email or password. Please try again.");
+      return;
+    }
+    setError(null);
+    navigate({ to: acc.landing });
   }
 
   return (
@@ -142,10 +95,8 @@ function AuthPage() {
               />
               Remember me — stay signed in until I sign out
             </label>
-            {denied ? (
-              <p className="text-sm text-destructive">
-                Access denied. Contact your Operations Manager.
-              </p>
+            {error ? (
+              <p className="text-sm text-destructive">{error}</p>
             ) : null}
             <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
               Sign In
