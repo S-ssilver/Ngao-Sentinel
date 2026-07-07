@@ -63,41 +63,41 @@
 
 :root {
   --radius: 0.625rem;
-  /* ARN Security — deep navy + gold operations theme */
-  --background: oklch(0.16 0.012 250);
-  --foreground: oklch(0.96 0.005 250);
-  --card: oklch(0.21 0.014 250);
-  --card-foreground: oklch(0.96 0.005 250);
-  --popover: oklch(0.21 0.014 250);
-  --popover-foreground: oklch(0.96 0.005 250);
-  /* deep navy #1A3C5E */
-  --primary: oklch(0.36 0.06 245);
-  --primary-foreground: oklch(0.98 0.005 250);
-  --secondary: oklch(0.26 0.015 250);
-  --secondary-foreground: oklch(0.96 0.005 250);
-  --muted: oklch(0.24 0.013 250);
-  --muted-foreground: oklch(0.68 0.02 250);
-  /* gold #C9A84C */
-  --accent: oklch(0.75 0.13 85);
-  --accent-foreground: oklch(0.18 0.02 250);
-  --destructive: oklch(0.62 0.22 25);
-  --destructive-foreground: oklch(0.98 0.005 250);
-  --border: oklch(0.30 0.015 250);
-  --input: oklch(0.26 0.015 250);
-  --ring: oklch(0.75 0.13 85);
-  --chart-1: oklch(0.36 0.06 245);
-  --chart-2: oklch(0.72 0.16 160);
-  --chart-3: oklch(0.75 0.13 85);
-  --chart-4: oklch(0.7 0.2 25);
-  --chart-5: oklch(0.68 0.18 305);
-  --sidebar: oklch(0.22 0.03 245);
-  --sidebar-foreground: oklch(0.96 0.005 250);
-  --sidebar-primary: oklch(0.75 0.13 85);
-  --sidebar-primary-foreground: oklch(0.16 0.012 250);
-  --sidebar-accent: oklch(0.26 0.015 250);
-  --sidebar-accent-foreground: oklch(0.96 0.005 250);
-  --sidebar-border: oklch(0.30 0.015 250);
-  --sidebar-ring: oklch(0.75 0.13 85);
+  /* ARN Security — premium futuristic dark theme */
+  --background: oklch(0.14 0.02 275);
+  --foreground: oklch(0.97 0.005 280);
+  --card: oklch(0.20 0.03 275 / 0.55);
+  --card-foreground: oklch(0.97 0.005 280);
+  --popover: oklch(0.18 0.03 275 / 0.92);
+  --popover-foreground: oklch(0.97 0.005 280);
+  /* electric violet */
+  --primary: oklch(0.68 0.22 295);
+  --primary-foreground: oklch(0.99 0.005 280);
+  --secondary: oklch(0.26 0.04 275 / 0.6);
+  --secondary-foreground: oklch(0.97 0.005 280);
+  --muted: oklch(0.24 0.03 275 / 0.6);
+  --muted-foreground: oklch(0.72 0.03 280);
+  /* cyan-blue accent */
+  --accent: oklch(0.78 0.15 230);
+  --accent-foreground: oklch(0.14 0.02 275);
+  --destructive: oklch(0.66 0.24 20);
+  --destructive-foreground: oklch(0.99 0.005 280);
+  --border: oklch(0.98 0.01 280 / 0.08);
+  --input: oklch(0.98 0.01 280 / 0.06);
+  --ring: oklch(0.68 0.22 295);
+  --chart-1: oklch(0.68 0.22 295);
+  --chart-2: oklch(0.78 0.15 230);
+  --chart-3: oklch(0.75 0.18 310);
+  --chart-4: oklch(0.70 0.20 25);
+  --chart-5: oklch(0.75 0.17 160);
+  --sidebar: oklch(0.18 0.03 275 / 0.7);
+  --sidebar-foreground: oklch(0.97 0.005 280);
+  --sidebar-primary: oklch(0.68 0.22 295);
+  --sidebar-primary-foreground: oklch(0.99 0.005 280);
+  --sidebar-accent: oklch(0.26 0.04 275 / 0.6);
+  --sidebar-accent-foreground: oklch(0.97 0.005 280);
+  --sidebar-border: oklch(0.98 0.01 280 / 0.08);
+  --sidebar-ring: oklch(0.68 0.22 295);
 }
 
 .dark {
@@ -143,5 +143,103 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(1200px 800px at 15% -10%, oklch(0.55 0.22 295 / 0.28), transparent 60%),
+      radial-gradient(1000px 700px at 110% 10%, oklch(0.60 0.20 230 / 0.22), transparent 60%),
+      radial-gradient(900px 700px at 50% 120%, oklch(0.55 0.22 310 / 0.18), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: "Space Grotesk", "Inter", sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ---------- Premium utilities ---------- */
+@utility glass {
+  background: color-mix(in oklab, var(--color-card) 70%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid var(--color-border);
+  box-shadow:
+    0 1px 0 0 oklch(1 0 0 / 0.05) inset,
+    0 20px 40px -20px oklch(0 0 0 / 0.6);
+}
+
+@utility glass-strong {
+  background: color-mix(in oklab, var(--color-card) 88%, transparent);
+  backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--color-border);
+}
+
+@utility glow-primary {
+  box-shadow:
+    0 0 0 1px oklch(0.68 0.22 295 / 0.35),
+    0 10px 40px -10px oklch(0.68 0.22 295 / 0.55);
+}
+
+@utility text-gradient {
+  background: linear-gradient(120deg, oklch(0.92 0.05 280), oklch(0.78 0.18 295) 40%, oklch(0.80 0.16 230));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@layer components {
+  .card, [data-slot="card"] {
+    backdrop-filter: blur(14px) saturate(140%);
+  }
+}
+
+/* ---------- Ambient particle field ---------- */
+@keyframes float-particle {
+  0%   { transform: translate3d(0,0,0) scale(1); opacity: 0.35; }
+  50%  { transform: translate3d(20px,-30px,0) scale(1.15); opacity: 0.7; }
+  100% { transform: translate3d(0,0,0) scale(1); opacity: 0.35; }
+}
+
+.particle-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.particle-field span {
+  position: absolute;
+  display: block;
+  width: 6px; height: 6px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, oklch(0.85 0.18 295 / 0.9), transparent 70%);
+  filter: blur(1px);
+  animation: float-particle 14s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+  0%,100% { background-position: 0% 50%; }
+  50%     { background-position: 100% 50%; }
+}
+
+/* Glow button aesthetic (opt-in via className) */
+.btn-glow {
+  position: relative;
+  background: linear-gradient(120deg, oklch(0.65 0.22 295), oklch(0.68 0.18 245));
+  background-size: 200% 200%;
+  color: oklch(0.99 0.005 280);
+  transition: transform 0.2s ease, box-shadow 0.3s ease, background-position 0.6s ease;
+  box-shadow: 0 10px 30px -10px oklch(0.55 0.22 295 / 0.6);
+}
+.btn-glow:hover {
+  transform: translateY(-1px);
+  background-position: 100% 50%;
+  box-shadow: 0 14px 40px -10px oklch(0.55 0.22 295 / 0.8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .particle-field span { animation: none; }
+  .btn-glow { transition: none; }
   }
 }
