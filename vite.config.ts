@@ -13,8 +13,17 @@ export default defineConfig({
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    prerender: {
+      enabled: true,
+      crawlLinks: true,
+      concurrency: 4,
+      failOnError: true,
+    },
   },
   vite: {
+    build: {
+      outDir: "dist",
+    },
     base: process.env.GITHUB_ACTIONS && repoName ? `/${repoName}/` : "/",
   },
 });
