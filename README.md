@@ -16,4 +16,7 @@ This repository includes a GitHub Actions workflow that publishes the built app 
 
 1. Enable GitHub Pages in the repository settings.
 2. Set the source to GitHub Actions.
-3. Push to the `main` branch or run the workflow manually.
+3. Add these repository secrets in GitHub:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_PUBLISHABLE_KEY`
+4. Push to the `main` branch or run the workflow manually.
