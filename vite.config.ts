@@ -7,6 +7,7 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 const repoName = process.env.GITHUB_REPOSITORY?.split("/")[1] ?? "";
+const basePath = process.env.VITE_BASE_PATH || (process.env.GITHUB_ACTIONS && repoName ? `/${repoName}/` : "/");
 
 export default defineConfig({
   tanstackStart: {
@@ -24,6 +25,6 @@ export default defineConfig({
     build: {
       outDir: "dist",
     },
-    base: process.env.GITHUB_ACTIONS && repoName ? `/${repoName}/` : "/",
+    base: basePath,
   },
 });
