@@ -14,11 +14,11 @@ export default defineConfig({
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    // Prerender is disabled: this app is fully dynamic (client-side session,
+    // live data), and the prerender preview server cannot resolve the custom
+    // nitro server entry, which broke the production build.
     prerender: {
-      enabled: true,
-      crawlLinks: true,
-      concurrency: 4,
-      failOnError: true,
+      enabled: false,
     },
   },
   vite: {
