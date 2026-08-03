@@ -41,10 +41,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
             <div className="min-w-0">
               <div className="text-sm font-semibold tracking-wide text-gradient">
-                ARN SECURITY
+                NGAO SENTINEL
               </div>
               <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                Operations Platform
+                Sentinel Platform
               </div>
             </div>
           </Link>

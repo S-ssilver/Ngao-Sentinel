@@ -30,7 +30,7 @@ import { getSession } from "@/lib/team-store";
 export const Route = createFileRoute("/guard")({
   head: () => ({
     meta: [
-      { title: "Guard Mode — ARN Security" },
+      { title: "Guard Mode — NGAO" },
       { name: "description", content: "Simplified field guard interface." },
     ],
   }),
@@ -64,7 +64,7 @@ function GuardMode() {
         <div className="grid h-12 w-12 place-items-center rounded-lg bg-accent text-accent-foreground">
           <ShieldCheck className="h-6 w-6" />
         </div>
-        <h1 className="text-2xl font-bold">ARN Security — Guard</h1>
+        <h1 className="text-2xl font-bold">NGAO — Guard</h1>
         <p className="text-sm text-muted-foreground">
           {guardName} · {site?.site_name ?? "Assigned site"}
         </p>

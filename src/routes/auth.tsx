@@ -12,8 +12,8 @@ import { getSession, signInWithPassword } from "@/lib/team-store";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — ARN Security" },
-      { name: "description", content: "Sign in to the ARN Security operations platform." },
+      { title: "Sign in — NGAO" },
+      { name: "description", content: "Sign in to the NGAO operations platform." },
     ],
   }),
   component: AuthPage,
@@ -58,7 +58,7 @@ function AuthPage() {
         <div className="grid h-14 w-14 place-items-center rounded-xl bg-accent text-accent-foreground">
           <ShieldCheck className="h-7 w-7" />
         </div>
-        <h1 className="text-2xl font-bold">ARN Security</h1>
+        <h1 className="text-2xl font-bold">NGAO</h1>
         <p className="text-xs uppercase tracking-widest text-accent">
           Operations Platform
         </p>

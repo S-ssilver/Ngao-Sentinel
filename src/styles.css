@@ -63,7 +63,7 @@
 
 :root {
   --radius: 0.625rem;
-  /* ARN Security — premium futuristic dark theme */
+  /* NGAO — premium futuristic dark theme */
   --background: oklch(0.14 0.02 275);
   --foreground: oklch(0.97 0.005 280);
   --card: oklch(0.20 0.03 275 / 0.55);

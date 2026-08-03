@@ -21,13 +21,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ARN Security — Operations Platform" },
+      { title: "NGAO Sentinel Platform" },
       {
         name: "description",
         content:
           "Real-time security intelligence for every site you protect. Incident management, proof of service reports, SOP guidance and digital guard attendance.",
       },
-      { property: "og:title", content: "ARN Security — Operations Platform" },
+      { property: "og:title", content: "NGAO Sentinel Platform" },
       {
         property: "og:description",
         content:
@@ -63,7 +63,7 @@ function TopBar() {
           </span>
           <div>
             <div className="text-sm font-semibold tracking-wide text-primary-foreground">
-              ARN SECURITY
+              NGAO SENTINEL
             </div>
             <div className="text-[11px] uppercase tracking-widest text-accent">
               Operations Platform
@@ -86,7 +86,7 @@ function Hero() {
     <section className="border-b border-accent/20 bg-primary text-primary-foreground">
       <div className="mx-auto max-w-5xl px-4 py-20 text-center sm:px-6 sm:py-28">
         <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
-          ARN Security —{" "}
+          NGAO —{" "}
           <span className="text-accent">Operations Platform</span>
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base text-primary-foreground/80 sm:text-lg">
@@ -230,7 +230,7 @@ function SentinelCamTeaser() {
           SentinelCam — AI-Powered Assault Detection
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-primary-foreground/80 sm:text-base">
-          The next phase of ARN's security intelligence platform. Offline
+          The next phase of NGAO's security intelligence platform. Offline
           edge-AI body cameras that detect threats in real time — no cellular
           data required. Built for Africa.
         </p>
@@ -320,7 +320,7 @@ function RequestAccessForm() {
               <div className="rounded-md border border-accent/40 bg-accent/10 p-6 text-center">
                 <ShieldCheck className="mx-auto h-8 w-8 text-accent" />
                 <p className="mt-3 text-sm font-medium">
-                  Thank you — ARN Security will be in touch within 24 hours.
+                  Thank you — NGAO will be in touch within 24 hours.
                 </p>
               </div>
             ) : (
@@ -384,7 +384,7 @@ function SiteFooter() {
           <span className="grid h-7 w-7 place-items-center rounded-md bg-accent text-accent-foreground">
             <ShieldCheck className="h-4 w-4" />
           </span>
-          <span>© 2026 ARN Security Operations Platform</span>
+          <span>© 2026 NGAO Sentinel Platform</span>
         </div>
         <nav className="flex gap-4 text-primary-foreground/80">
           <a href="#" className="hover:text-accent">

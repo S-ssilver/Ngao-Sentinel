@@ -410,7 +410,7 @@ function ClientCameras() {
         ))}
       </div>
       <p className="text-xs text-muted-foreground">
-        Connect your existing CCTV system to enable live feeds. Contact ARN
+        Connect your existing CCTV system to enable live feeds. Contact NGAO
         Security for setup assistance.
       </p>
     </div>

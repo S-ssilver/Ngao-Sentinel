@@ -507,7 +507,7 @@ function CctvGrid({ siteName, label }: { siteName: string; label: string }) {
         ))}
       </div>
       <p className="text-xs text-muted-foreground">
-        Connect your existing CCTV system to enable live feeds. Contact ARN
+        Connect your existing CCTV system to enable live feeds. Contact NGAO
         Security for setup.
       </p>
       {label ? null : null}
