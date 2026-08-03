@@ -6,6 +6,7 @@ import { CheckCircle2, ClipboardList, ShieldAlert, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MetricCard } from "@/components/MetricCard";
 import { ReportButtons } from "@/components/ReportButtons";
+import { MotionStatus } from "@/components/MotionStatus";
 import {
   IncidentDetailsDialog,
   type IncidentWithSite,
@@ -399,6 +400,7 @@ function ClientCameras() {
                 </span>
                 Live Feed
               </div>
+              <MotionStatus seed={c.name.length} />
             </div>
             <div className="flex items-center justify-between p-2 text-xs">
               <div className="flex items-center gap-1.5 font-medium">
