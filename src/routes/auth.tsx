@@ -109,7 +109,8 @@ function AuthPage() {
       </Card>
 
       <div className="mt-8 text-center text-xs text-muted-foreground">
-        Powered by Silverline Tech
+        <div>© 2026 NGAO. All rights reserved.</div>
+        <div className="mt-1">Powered by Silverline Tech</div>
       </div>
       <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-muted-foreground/70">
         <ShieldCheck className="h-3 w-3" />
