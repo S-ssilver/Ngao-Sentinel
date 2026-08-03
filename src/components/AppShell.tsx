@@ -97,7 +97,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>
       <footer className="border-t border-border/60 py-4 text-center text-xs text-muted-foreground">
-        Powered by Silverline Tech
+        <div>© 2026 NGAO. All rights reserved.</div>
+        <div className="mt-1">Powered by Silverline Tech</div>
       </footer>
     </div>
   );
