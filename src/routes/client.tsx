@@ -399,6 +399,7 @@ function ClientCameras() {
                 </span>
                 Live Feed
               </div>
+              <MotionStatus seed={c.name.length} />
             </div>
             <div className="flex items-center justify-between p-2 text-xs">
               <div className="flex items-center gap-1.5 font-medium">
