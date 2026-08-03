@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import ngaoLogo from "@/assets/ngao-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -58,15 +59,13 @@ function TopBar() {
     <header className="sticky top-0 z-40 border-b border-accent/30 bg-primary/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-accent-foreground">
-            <ShieldCheck className="h-5 w-5" />
-          </span>
+          <img src={ngaoLogo.url} alt="NGAO logo" className="h-10 w-10 object-contain" />
           <div>
             <div className="text-sm font-semibold tracking-wide text-primary-foreground">
               NGAO SENTINEL
             </div>
             <div className="text-[11px] uppercase tracking-widest text-accent">
-              Operations Platform
+              Sentinel Platform
             </div>
           </div>
         </div>
@@ -87,7 +86,7 @@ function Hero() {
       <div className="mx-auto max-w-5xl px-4 py-20 text-center sm:px-6 sm:py-28">
         <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
           NGAO —{" "}
-          <span className="text-accent">Operations Platform</span>
+          <span className="text-accent">Sentinel Platform</span>
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base text-primary-foreground/80 sm:text-lg">
           Real-time security intelligence for every site you protect.
@@ -381,10 +380,8 @@ function SiteFooter() {
     <footer className="bg-primary py-8 text-primary-foreground">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-xs sm:flex-row sm:px-6">
         <div className="flex items-center gap-2">
-          <span className="grid h-7 w-7 place-items-center rounded-md bg-accent text-accent-foreground">
-            <ShieldCheck className="h-4 w-4" />
-          </span>
-          <span>© 2026 NGAO Sentinel Platform</span>
+          <img src={ngaoLogo.url} alt="NGAO logo" className="h-7 w-7 object-contain" />
+          <span>© 2026 NGAO. All rights reserved.</span>
         </div>
         <nav className="flex gap-4 text-primary-foreground/80">
           <a href="#" className="hover:text-accent">

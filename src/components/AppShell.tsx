@@ -1,8 +1,9 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LogOut, ShieldCheck } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { signOut, useSession } from "@/lib/team-store";
+import ngaoLogo from "@/assets/ngao-logo.png.asset.json";
 
 import type { Role } from "@/lib/team-store";
 
@@ -36,9 +37,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/40 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <Link to="/ops" className="flex items-center gap-2 shrink-0">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-[0_0_24px_-4px] shadow-primary/60">
-              <ShieldCheck className="h-5 w-5" />
-            </span>
+            <img
+              src={ngaoLogo.url}
+              alt="NGAO logo"
+              className="h-10 w-10 object-contain"
+            />
             <div className="min-w-0">
               <div className="text-sm font-semibold tracking-wide text-gradient">
                 NGAO SENTINEL
