@@ -489,6 +489,7 @@ function CctvGrid({ siteName, label }: { siteName: string; label: string }) {
                 </span>
                 {label}
               </div>
+              <MotionStatus seed={c.name.length} />
               <button
                 onClick={() => setFull(c)}
                 className="absolute right-2 top-2 rounded-md bg-black/70 p-1.5 text-white hover:bg-black"
