@@ -165,7 +165,7 @@ function OperationsDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">Operations Dashboard</h1>
+        <h1 className="text-2xl font-bold sm:text-3xl">NGAO Operations Center</h1>
         <p className="text-sm text-muted-foreground">Live security operations overview.</p>
       </div>
 

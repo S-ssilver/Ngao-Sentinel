@@ -124,7 +124,7 @@ function ClientPortal() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold sm:text-3xl">Client Portal</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">NGAO Client Portal</h1>
           <p className="text-sm text-muted-foreground">Attendance, incidents, and reports.</p>
         </div>
         <ReportButtons scope="client" title="Client portfolio report" />
