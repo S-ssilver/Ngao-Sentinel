@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { getSession, signInWithPassword } from "@/lib/team-store";
+import ngaoLogo from "@/assets/ngao-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — ARN Security" },
-      { name: "description", content: "Sign in to the ARN Security operations platform." },
+      { title: "Sign in — NGAO" },
+      { name: "description", content: "Sign in to the NGAO operations platform." },
     ],
   }),
   component: AuthPage,
@@ -55,12 +56,14 @@ function AuthPage() {
   return (
     <div className="mx-auto max-w-md py-8">
       <div className="mb-6 flex flex-col items-center gap-2 text-center">
-        <div className="grid h-14 w-14 place-items-center rounded-xl bg-accent text-accent-foreground">
-          <ShieldCheck className="h-7 w-7" />
-        </div>
-        <h1 className="text-2xl font-bold">ARN Security</h1>
+        <img
+          src={ngaoLogo.url}
+          alt="NGAO logo"
+          className="h-20 w-20 object-contain"
+        />
+        <h1 className="text-2xl font-bold tracking-wide">NGAO SENTINEL PLATFORM</h1>
         <p className="text-xs uppercase tracking-widest text-accent">
-          Operations Platform
+          AI-Powered Security Intelligence for Africa
         </p>
       </div>
 
@@ -106,7 +109,8 @@ function AuthPage() {
       </Card>
 
       <div className="mt-8 text-center text-xs text-muted-foreground">
-        Powered by Silverline Tech
+        <div>© 2026 NGAO. All rights reserved.</div>
+        <div className="mt-1">Powered by Silverline Tech</div>
       </div>
       <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-muted-foreground/70">
         <ShieldCheck className="h-3 w-3" />

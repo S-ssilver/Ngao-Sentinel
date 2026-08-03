@@ -54,7 +54,7 @@ import { OpReportsSection } from "@/components/OpReportsSection";
 export const Route = createFileRoute("/ops")({
   head: () => ({
     meta: [
-      { title: "Operations Dashboard — ARN Security" },
+      { title: "Operations Dashboard — NGAO" },
       { name: "description", content: "Live operations metrics and incident trends." },
     ],
   }),
@@ -165,7 +165,7 @@ function OperationsDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">Operations Dashboard</h1>
+        <h1 className="text-2xl font-bold sm:text-3xl">NGAO Operations Center</h1>
         <p className="text-sm text-muted-foreground">Live security operations overview.</p>
       </div>
 
@@ -461,10 +461,10 @@ function TeamManagement({ sites }: { sites: Site[] }) {
           <div className="rounded-md border border-border bg-muted/30 p-4 text-sm">
             <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Simulated email</div>
             <div className="font-medium">To: {invited?.email}</div>
-            <div className="mt-2">Subject: You've been invited to ARN Security</div>
+            <div className="mt-2">Subject: You've been invited to NGAO</div>
             <p className="mt-3 text-muted-foreground">
               Hi {invited?.name}, your Operations Manager has invited you to join
-              the ARN Security Operations Platform as <b>{invited?.role}</b>. Click
+              the NGAO Sentinel Platform as <b>{invited?.role}</b>. Click
               the link below to set your password and sign in.
             </p>
             <p className="mt-3 text-xs text-muted-foreground">

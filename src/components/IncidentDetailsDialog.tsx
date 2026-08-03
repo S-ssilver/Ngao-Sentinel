@@ -115,7 +115,7 @@ export function IncidentDetailsDialog({
                     <CheckCircle2 className="h-3.5 w-3.5" /> Resolved
                   </div>
                   <p>
-                    Incident closed by Operations. Response actions completed per ARN
+                    Incident closed by Operations. Response actions completed per NGAO
                     Security SOP. Full audit trail retained.
                   </p>
                 </div>
