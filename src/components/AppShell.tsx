@@ -4,11 +4,13 @@ import { useEffect, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { signOut, useSession } from "@/lib/team-store";
 
+import type { Role } from "@/lib/team-store";
+
 const navItems = [
-  { to: "/ops", label: "Operations" },
-  { to: "/client", label: "Client Portal" },
-  { to: "/supervisor", label: "Supervisor" },
-] as const;
+  { to: "/ops", label: "Operations", role: "Operations Manager" },
+  { to: "/client", label: "Client Portal", role: "Client" },
+  { to: "/supervisor", label: "Supervisor", role: "Supervisor" },
+] as const satisfies ReadonlyArray<{ to: string; label: string; role: Role }>;
 
 const PROTECTED_PREFIXES = ["/ops", "/supervisor", "/client", "/guard", "/sites"];
 
@@ -19,6 +21,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isProtected = PROTECTED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(p + "/"),
   );
+  const visibleNavItems = session
+    ? navItems.filter((item) => item.role === session.role)
+    : [];
 
   useEffect(() => {
     if (isProtected && !session) {
@@ -45,7 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             <nav className="flex flex-wrap gap-1 overflow-x-auto">
-              {navItems.map((item) => (
+              {visibleNavItems.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
