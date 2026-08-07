@@ -50,6 +50,8 @@ import {
   type TeamUser,
 } from "@/lib/team-store";
 import { OpReportsSection } from "@/components/OpReportsSection";
+import { StorageCard } from "@/components/StorageCard";
+import { IncidentReviewSection } from "@/components/IncidentReviewSection";
 
 export const Route = createFileRoute("/ops")({
   head: () => ({
@@ -164,9 +166,12 @@ function OperationsDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">NGAO Operations Center</h1>
-        <p className="text-sm text-muted-foreground">Live security operations overview.</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold sm:text-3xl">NGAO Operations Center</h1>
+          <p className="text-sm text-muted-foreground">Live security operations overview.</p>
+        </div>
+        <StorageCard className="w-full sm:w-[320px]" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -317,6 +322,8 @@ function OperationsDashboard() {
       </Card>
 
       <OpReportsSection sites={sitesQAll.data ?? []} />
+
+      <IncidentReviewSection />
 
       <TeamManagement sites={sitesQAll.data ?? []} />
 
