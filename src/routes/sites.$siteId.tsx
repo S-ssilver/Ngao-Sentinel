@@ -31,6 +31,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { INCIDENT_PROTOCOLS } from "@/lib/incident-protocols";
+import { MotionStatus } from "@/components/MotionStatus";
+import { DataLifecycleInfo } from "@/components/StorageCard";
+import { IncidentVideoDialog } from "@/components/IncidentVideoDialog";
 import {
   severityTone,
   statusTone,
@@ -474,11 +477,17 @@ function CctvGrid({ siteName, label }: { siteName: string; label: string }) {
     { name: "Rear Perimeter", img: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800&q=60" },
   ];
   const [full, setFull] = useState<{ name: string; img: string } | null>(null);
+  const [videoOpen, setVideoOpen] = useState(false);
   const updated = new Date().toLocaleTimeString();
   return (
     <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button size="sm" variant="outline" onClick={() => setVideoOpen(true)}>
+          <Video className="mr-2 h-4 w-4" /> View Incident Video
+        </Button>
+      </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {cameras.map((c) => (
+        {cameras.map((c, idx) => (
           <div key={c.name} className="overflow-hidden rounded-lg border border-border bg-card">
             <div className="relative aspect-video bg-black">
               <img src={c.img} alt={c.name} className="h-full w-full object-cover opacity-90" />
@@ -489,6 +498,7 @@ function CctvGrid({ siteName, label }: { siteName: string; label: string }) {
                 </span>
                 {label}
               </div>
+              <MotionStatus seed={idx} />
               <button
                 onClick={() => setFull(c)}
                 className="absolute right-2 top-2 rounded-md bg-black/70 p-1.5 text-white hover:bg-black"
@@ -510,7 +520,9 @@ function CctvGrid({ siteName, label }: { siteName: string; label: string }) {
         Connect your existing CCTV system to enable live feeds. Contact NGAO
         Security for setup.
       </p>
+      <DataLifecycleInfo />
       {label ? null : null}
+      <IncidentVideoDialog open={videoOpen} onOpenChange={setVideoOpen} siteName={siteName} />
       <Dialog open={!!full} onOpenChange={(o) => !o && setFull(null)}>
         <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
