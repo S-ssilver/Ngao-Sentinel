@@ -6,6 +6,8 @@ import { CheckCircle2, ClipboardList, ShieldAlert, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MetricCard } from "@/components/MetricCard";
 import { ReportButtons } from "@/components/ReportButtons";
+import { MotionStatus } from "@/components/MotionStatus";
+import { DataLifecycleInfo } from "@/components/StorageCard";
 import {
   IncidentDetailsDialog,
   type IncidentWithSite,
