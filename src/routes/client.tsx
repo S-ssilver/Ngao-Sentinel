@@ -388,7 +388,7 @@ function ClientCameras() {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {cameras.map((c) => (
+        {cameras.map((c, idx) => (
           <div key={c.name} className="overflow-hidden rounded-lg border border-border bg-card">
             <div className="relative aspect-video bg-black">
               <img src={c.img} alt={c.name} className="h-full w-full object-cover opacity-90" />
@@ -399,6 +399,7 @@ function ClientCameras() {
                 </span>
                 Live Feed
               </div>
+              <MotionStatus seed={idx} />
             </div>
             <div className="flex items-center justify-between p-2 text-xs">
               <div className="flex items-center gap-1.5 font-medium">
@@ -413,6 +414,7 @@ function ClientCameras() {
         Connect your existing CCTV system to enable live feeds. Contact NGAO
         Security for setup assistance.
       </p>
+      <DataLifecycleInfo />
     </div>
   );
 }
