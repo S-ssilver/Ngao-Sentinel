@@ -1,48 +1,12 @@
-// Simple demo auth + local team store.
-// Auth uses three hardcoded accounts and persists the session in
-// localStorage ("Remember me") or sessionStorage (session-only).
-// Team management data (users list) is kept in localStorage for the
-// Operations dashboard's Team Management panel.
+// Supabase authentication + local team store.
+// Authentication is handled by Supabase Auth.
+// Team management data is kept in localStorage for
+// the Operations dashboard's Team Management panel.
 import { useSyncExternalStore } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export type Role = "Operations Manager" | "Supervisor" | "Client" | "Guard (Field)";
 export type UserStatus = "Active" | "Pending" | "Suspended";
-
-export interface DemoAccount {
-  email: string;
-  password: string;
-  role: Role;
-  name: string;
-  displayName: string;
-  landing: "/ops" | "/supervisor" | "/client" | "/guard";
-}
-
-export const DEMO_ACCOUNTS: DemoAccount[] = [
-  {
-    email: "ops@arnsecurity.co.ke",
-    password: "ARN2026ops",
-    role: "Operations Manager",
-    name: "Grace Wanjiru",
-    displayName: "Grace Wanjiru — Operations Manager",
-    landing: "/ops",
-  },
-  {
-    email: "supervisor@arnsecurity.co.ke",
-    password: "ARN2026sup",
-    role: "Supervisor",
-    name: "John Kamau",
-    displayName: "John Kamau — Supervisor",
-    landing: "/supervisor",
-  },
-  {
-    email: "client@naivas.co.ke",
-    password: "NAI2026client",
-    role: "Client",
-    name: "Naivas",
-    displayName: "Naivas — Client Portal",
-    landing: "/client",
-  },
-];
 
 export interface TeamUser {
   id: string;
@@ -160,29 +124,56 @@ export function setSession(s: Session | null) {
   emit();
 }
 
-export function signInWithPassword(
+export async function signInWithPassword(
   email: string,
   password: string,
   remember: boolean,
-): DemoAccount | null {
-  const acc = DEMO_ACCOUNTS.find(
-    (a) =>
-      a.email.toLowerCase() === email.trim().toLowerCase() &&
-      a.password === password,
-  );
-  if (!acc) return null;
-  setSession({
-    email: acc.email,
-    role: acc.role,
-    name: acc.name,
-    displayName: acc.displayName,
+) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email.trim(),
+    password,
+  });
+
+  if (error || !data.user) {
+    return null;
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("Profiles")
+    .select("email, name, role")
+    .eq("id", data.user.id)
+    .single();
+
+  if (profileError || !profile) {
+    await supabase.auth.signOut();
+    return null;
+  }
+
+  const session: Session = {
+    email: profile.email,
+    role: profile.role as Role,
+   name: profile.name ?? "User",
+    displayName: `${profile.name} — ${profile.role}`,
     siteIds: [],
     remember,
-  });
-  return acc;
+  };
+
+  setSession(session);
+
+  return {
+    ...session,
+    landing:
+      profile.role === "Operations Manager"
+        ? "/ops"
+        : profile.role === "Supervisor"
+          ? "/supervisor"
+          : "/client",
+  };
 }
 
-export function signOut() {
+
+export async function signOut() {
+  await supabase.auth.signOut();
   setSession(null);
 }
 

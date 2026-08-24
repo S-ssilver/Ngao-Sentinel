@@ -42,9 +42,9 @@ function AuthPage() {
     navigate({ to: dest });
   }, [navigate]);
 
-  function handleSubmit(e: React.FormEvent) {
+ async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const acc = signInWithPassword(email, password, remember);
+    const acc = await signInWithPassword(email, password, remember);
     if (!acc) {
       setError("Incorrect email or password. Please try again.");
       return;

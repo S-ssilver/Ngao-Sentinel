@@ -82,8 +82,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                   size="sm"
                   variant="ghost"
                   className="h-8 gap-1 text-xs"
-                  onClick={() => {
-                    signOut();
+                  onClick={async () => {
+                    await signOut();
                     navigate({ to: "/auth" });
                   }}
                 >
